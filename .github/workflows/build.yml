@@ -35,13 +35,26 @@ jobs:
         run: |
           $t = "${{ github.ref_name }}"
           if ($t -like 'v*') { npm version $t.Substring(1) --no-git-tag-version --allow-same-version }
-      - run: npm install
-      - name: Build (publish only on tag v*)
+      - name: Check release
+        id: rel
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if ("${{ github.ref }}".StartsWith("refs/tags/v")) { npx electron-builder --win --x64 --publish always }
+          $v = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          gh release view "v$v" --repo "${{ github.repository }}" *> $null
+          $new = ($LASTEXITCODE -ne 0)
+          "version=$v" >> $env:GITHUB_OUTPUT
+          "new=$($new.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          $global:LASTEXITCODE = 0
+      - run: npm install
+      # Релиз создаётся автоматически: тег v* или пуш в main с версией package.json, для которой релиза ещё нет
+      - name: Build (publish on tag or new version)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ("${{ github.ref }}".StartsWith("refs/tags/v") -or "${{ steps.rel.outputs.new }}" -eq "true") { npx electron-builder --win --x64 --publish always }
           else { npx electron-builder --win --x64 --publish never }
       - uses: actions/upload-artifact@v4
         with:
