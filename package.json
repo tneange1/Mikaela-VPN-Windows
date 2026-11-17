@@ -1,7 +1,7 @@
 {
   "name": "mikaela-vpn",
   "productName": "Mikaela VPN",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Mikaela VPN client (sing-box)",
   "main": "main.js",
   "scripts": {
