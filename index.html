@@ -1,0 +1,475 @@
+<!doctype html><html lang="ru" data-theme="dark"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:">
+<title>Mikaela VPN</title><link rel="stylesheet" href="fonts.css">
+<style>
+:root,[data-theme=dark]{--bg:#111;--sf:#181818;--sh:#202020;--tm:#161616;--bd:#2a2a2a;--bh:#383838;--dv:#1e1e1e;--tx:#f2f2f2;--t2:#8e8e93;--t3:#6e6e73;--ib:#d1d1d6;--ok:#34c759;--er:#ff453a}
+[data-theme=gray]{--bg:#1c1c1e;--sf:#252528;--sh:#2e2e32;--tm:#18181a;--bd:#343438;--bh:#46464c;--dv:#2a2a2e;--tx:#f5f5f7;--t2:#98989d;--t3:#7c7c82;--ib:#e5e5ea}
+[data-theme=light]{--bg:#f5f5f7;--sf:#fff;--sh:#efeff4;--tm:#ebebf0;--bd:#dcdce0;--bh:#c6c6cc;--dv:#e5e5ea;--tx:#111;--t2:#6e6e73;--t3:#8e8e93;--ib:#2c2c2e}
+*{box-sizing:border-box;-webkit-user-select:none;user-select:none}
+html,body{height:100%;margin:0}
+body{font-family:'Inter','Segoe UI Variable','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:15px;overflow:hidden;transition:background .25s,color .25s}
+.hide{display:none!important}.t2{color:var(--t2)}.mono{font-family:'JetBrains Mono',Consolas,monospace;font-size:13px}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:9999px}::-webkit-scrollbar-thumb:hover{background:var(--bh)}::-webkit-scrollbar-corner{background:transparent}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+[data-ic] svg{width:20px;height:20px}
+.screen{position:absolute;inset:0;overflow-y:auto;padding:28px 24px}
+.hd{position:absolute;top:0;left:0;right:0;height:64px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;z-index:5}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:500;letter-spacing:-.01em;cursor:pointer}
+.logo{display:inline-flex;width:26px;height:22px;align-items:center}.logo img{width:26px;height:26px;object-fit:contain}
+main{position:absolute;top:64px;bottom:72px;left:0;right:0;overflow-y:auto;padding:0 24px 28px}
+.h1{font-size:38px;font-weight:400;line-height:1.12;letter-spacing:-.02em;margin:10px 0 0}
+.sub{font-size:15px;color:var(--t2);margin:10px 0 0;display:flex;align-items:center;gap:8px}
+.meta{font-size:12px;color:var(--t3);margin-top:4px}
+.dot2{width:8px;height:8px;border-radius:50%;background:var(--t3);display:inline-block;transition:background .3s}
+.btn{display:flex;align-items:center;gap:14px;width:100%;margin-top:12px;padding:15px 20px;border-radius:12px;background:var(--sf);border:1px solid var(--bd);color:var(--ib);font:inherit;font-size:15px;cursor:pointer;text-align:left;transition:background .18s,border-color .18s,transform .12s}
+.btn:hover{background:var(--sh);border-color:var(--bh)}.btn:active{transform:scale(.992)}
+.btn.between{justify-content:space-between}.btn.act{border-color:var(--tx);color:var(--tx)}.btn.c{justify-content:center}.btn.sm{padding:11px 12px;font-size:13px;justify-content:center;margin-top:0}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.dng:hover{color:var(--er);border-color:var(--er)}
+.card{display:flex;align-items:center;justify-content:space-between;margin-top:26px;padding:20px;border-radius:16px;background:var(--sf);border:1px solid var(--bd)}
+.ct{font-size:16px;font-weight:500}
+.pw{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--bh);color:var(--t2);cursor:pointer;transition:.2s}
+.pw svg{width:22px;height:22px;stroke-width:1.8}.pw.on{color:var(--ok);border-color:var(--ok)}
+.lbl{font-size:13px;color:var(--t2);margin:26px 0 8px}
+.rows{margin-top:22px}
+.row{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 0;border:0;border-bottom:1px solid var(--dv);background:none;color:var(--tx);font:inherit;text-align:left}
+.rows .row:last-child{border:0}button.row{cursor:pointer}
+.er{color:var(--er);font-size:13px;margin-top:12px;white-space:pre-wrap;word-break:break-word}.ok{color:var(--ok)}
+.fl{width:28px;height:20px;border-radius:4px;object-fit:cover;flex:none;display:inline-flex;align-items:center;justify-content:center;background:var(--bd);color:#fff;font-size:10px;font-weight:600}
+.list{margin-top:18px}
+.srv{display:flex;align-items:center;gap:16px;width:100%;padding:14px 12px;border:0;border-radius:12px;background:none;color:var(--tx);font:inherit;text-align:left;cursor:pointer;transition:background .16s}
+.srv:hover,.srv.sel{background:var(--sf)}.grow{flex:1;min-width:0}
+.srv .n{font-size:16px;letter-spacing:-.01em}.srv .d{font-size:12px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srv .mt{font-size:13px;color:var(--t2);white-space:nowrap}.dotg{width:6px;height:6px;border-radius:50%;background:var(--ok);flex:none}
+.dev{display:flex;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid var(--dv)}.dev:last-child{border:0}
+.dev svg{width:20px;height:20px;color:var(--t2);flex:none}.dev .n{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dev .s{font-size:13px;color:var(--t2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--sf);border:1px solid var(--bd);color:var(--t2);margin-left:8px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+.g2 .btn,.g3 .btn{margin:0}
+input,select{width:100%;padding:14px;margin-top:12px;border-radius:12px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);font:inherit;outline:none}
+input:focus{border-color:var(--bh)}select.s{width:auto;margin:0;padding:6px 10px;border-radius:10px;font-size:13px}
+.pwf{position:relative}.pwf button{position:absolute;right:6px;top:19px;border:0;background:none;color:var(--t2);font:inherit;font-size:12px;cursor:pointer;padding:6px 10px}
+a{color:var(--ib);font-size:13px;cursor:pointer;text-decoration:underline;text-decoration-color:var(--bd)}
+.sec{margin-top:30px}.sec .hdr{display:flex;align-items:center;justify-content:space-between;font-size:14px;color:var(--t2)}
+nav{position:absolute;bottom:0;left:0;right:0;height:72px;display:flex;background:var(--bg);border-top:1px solid var(--dv);z-index:5}
+nav button{flex:1;border:0;background:none;color:var(--t3);font:inherit;font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:color .2s}
+nav button.act{color:var(--tx)}
+#sheet{position:absolute;inset:0;background:#000b;display:flex;align-items:flex-end;z-index:20;padding:14px}
+.sheet{width:100%;max-height:92%;overflow:auto;border-radius:18px;padding:24px;background:var(--bg);border:1px solid var(--bd)}
+.sheet h2{font-size:20px;font-weight:400;margin:0 0 6px}
+#toast{position:absolute;top:70px;left:24px;right:24px;z-index:30;padding:12px 16px;border-radius:12px;background:var(--sf);border:1px solid var(--bh);font-size:13px;display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(-12px);pointer-events:none;transition:.2s}
+#toast.show{opacity:1;transform:none}
+.pill{display:flex;align-items:center;gap:10px;padding:7px 14px;border-radius:99px;background:var(--sf);border:1px solid var(--bd);color:var(--tx);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.pill svg{width:13px;height:13px}.pill:hover{background:var(--sh)}
+
+*:focus,*:focus-visible{outline:none!important}button,select,input,textarea,a{-webkit-tap-highlight-color:transparent}
+.seg{display:flex;margin-top:12px;padding:3px;gap:2px;border:1px solid var(--bd);border-radius:12px;background:var(--sf)}
+.seg button{flex:1;border:0;background:none;color:var(--t2);padding:9px 4px;border-radius:9px;font:inherit;font-size:13px;cursor:pointer;transition:background .18s,color .18s}
+.seg button:hover{color:var(--tx)}.seg button.act{background:var(--sh);color:var(--tx);box-shadow:0 0 0 1px var(--bh) inset}
+#dlg{position:absolute;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;z-index:50;padding:24px}
+#dlg .box{width:100%;border-radius:18px;padding:22px;background:var(--bg);border:1px solid var(--bd)}
+#dlg .tt{font-size:17px;margin:0 0 8px}#dlg .tx{font-size:14px;color:var(--t2);line-height:1.5;white-space:pre-wrap}
+#dlg .g2 .btn{justify-content:center}#dlg .btn.pri{background:var(--tx);color:var(--bg);border-color:var(--tx)}#dlg .btn.pri.dng{background:var(--er);border-color:var(--er);color:#fff}
+.stp{display:flex;align-items:center;justify-content:center;gap:22px;margin:22px 0 8px}
+.stp button{width:44px;height:44px;border-radius:12px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);font:inherit;font-size:20px;cursor:pointer}
+.stp button:hover{background:var(--sh)}.stp button:disabled{opacity:.4;cursor:default}
+.stp .num{font-size:40px;font-weight:300;min-width:56px;text-align:center}
+.ctr{text-align:center}
+.rit{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--dv);font-size:14px}.rit .t2{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rit button{border:0;background:none;color:var(--t2);font-size:18px;cursor:pointer;padding:0 6px}.rit button:hover{color:var(--er)}.empty{font-size:13px;color:var(--t3);padding:8px 0}
+.bk{border:0;background:none;color:var(--t2);font:inherit;font-size:14px;cursor:pointer;padding:0;margin-bottom:6px}.bk:hover{color:var(--tx)}
+#updOv{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+#updOv .box{width:100%;max-width:340px;text-align:center;padding:28px 24px;border-radius:20px;background:var(--bg);border:1px solid var(--bd)}
+#updOv h2{font-size:20px;font-weight:500;margin:14px 0 8px}#updOv p{font-size:14px;color:var(--t2);line-height:1.5;margin:0 0 20px}
+.prg{height:6px;border-radius:99px;background:var(--sf);border:1px solid var(--bd);overflow:hidden;margin-bottom:6px}.prg i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+</style></head><body>
+<div id="updOv" class="hide"><div class="box"><span class="logo" data-logo style="display:inline-flex"></span><h2 id="uoT">Доступно обновление</h2><p id="uoP">Чтобы продолжить пользоваться приложением, обновите его до последней версии.</p><div id="uoPr" class="hide"><div class="prg"><i id="uoBar"></i></div><div class="meta" id="uoPc"></div></div><button class="btn c hide" id="uoB" style="margin-top:6px">Обновить</button></div></div>
+  
+
+<div id="login" class="screen">
+  <div class="brand" style="cursor:default"><span class="logo" data-logo></span>Mikaela VPN</div>
+  <h1 class="h1" style="margin-top:34px">Вход</h1>
+  <p class="sub">Аккаунт общий с ботом и кабинетом</p>
+  <div class="g2" id="tabs"><button id="tL" class="btn c act">Вход</button><button id="tR" class="btn c">Регистрация</button></div>
+  <input id="nm" class="hide" placeholder="Имя (необязательно)">
+  <input id="em" type="email" placeholder="Email">
+  <div class="pwf" id="pwf"><input id="pw" type="password" placeholder="Пароль"><button id="eye" type="button">Показать</button></div>
+  <button id="go" class="btn c" style="color:var(--tx)">Войти</button>
+  <div id="fgW" style="text-align:right;margin-top:12px"><a id="fg">Забыли пароль / не задан пароль?</a></div>
+  <div id="msg" class="er" style="min-height:18px"></div>
+  <div id="altSep" class="t2 hide" style="text-align:center;margin:18px 0 4px;font-size:12px">или</div>
+  <div id="alt"></div>
+</div>
+
+<div id="app" class="hide">
+  <div class="hd"><div class="brand" id="brand"><span class="logo" data-logo></span>Mikaela VPN</div>
+    <button class="pill" id="balBtn"><span id="bal">—</span><span data-ic="plus"></span></button></div>
+  <div id="toast"><i class="dotg" id="tdot"></i><span id="tmsg"></span></div>
+
+  <main>
+  <section id="pHome">
+    <div id="updBar" class="hide"><div class="card" style="margin:0 0 18px;padding:14px 16px"><div class="grow"><div class="ct" id="ubT" style="font-size:14px"></div><div class="meta" id="ubS"></div></div><button class="btn sm" id="ubB" style="width:auto;padding:9px 16px;margin:0 0 0 12px">Обновить</button></div></div>
+    <h1 class="h1">Главная</h1>
+    <div class="sub"><i id="hDot" class="dot2"></i><span id="hTxt">Отключено</span></div>
+    <div class="card"><div><div id="cT" class="ct">Соединение остановлено</div><div id="cS" class="mono t2" style="margin-top:4px">Нажмите для подключения</div></div>
+      <button id="big" class="pw" aria-label="Подключить"><span data-ic="power"></span></button></div>
+    <div class="lbl">Текущая локация</div>
+    <button class="btn between" id="curSrv" style="margin:0"><span style="display:flex;align-items:center;gap:14px;min-width:0"><span id="curFlag"></span><span style="min-width:0"><span id="curName" style="font-size:16px;color:var(--tx)">—</span><small id="curDesc" class="t2" style="display:block;font-size:12px"></small></span></span><span class="t2" style="display:flex;align-items:center;gap:6px;font-size:14px"><span id="curMeta"></span><span data-ic="chev"></span></span></button>
+    <div class="rows">
+      <button class="row" id="tarRow"><span class="t2">Тариф</span><span style="display:flex;align-items:center;gap:6px"><b id="tar" style="font-weight:500">—</b><span id="tarCh" class="t2 hide" data-ic="chev"></span></span></button>
+      <div class="row"><span class="t2">Осталось</span><span id="left">—</span></div>
+      <div class="row"><span class="t2">Устройства</span><span id="dev">—</span></div>
+      <div class="row"><span class="t2">Трафик</span><span id="tr">—</span></div>
+    </div>
+    <button class="btn" id="renewBtn"><span data-ic="plus"></span>Продлить подписку</button>
+    <div id="err2" class="er"></div>
+  </section>
+
+  <section id="pSrv" class="hide">
+    <h1 class="h1">Серверы</h1>
+    <p class="sub" style="display:block">Выберите сервер для подключения</p>
+    <p class="meta" id="subHead">—</p>
+    <button class="btn" id="pingAll"><span data-ic="ping"></span><span id="pingLbl">Тест пинга</span></button>
+    <button class="btn" id="reload"><span data-ic="refresh"></span>Обновить</button>
+    <div class="list" id="list"></div>
+    <div id="srvErr" class="er"></div>
+  </section>
+
+  <section id="pDev" class="hide">
+    <h1 class="h1">Устройства</h1>
+    <p class="sub" id="devSub" style="display:block">—</p>
+    <div class="list" id="devList"></div>
+    <div id="devErr" class="er"></div>
+    <button class="btn" id="devBuy"><span data-ic="plus"></span>Докупить устройства</button>
+    <button class="btn dng" id="devReset"><span data-ic="trash"></span>Сбросить все устройства</button>
+  </section>
+
+  <section id="pSet" class="hide">
+    <div id="sMain">
+      <h1 class="h1">Настройки</h1>
+      <p class="sub" style="display:block">Параметры приложения</p>
+      <button class="btn between" data-sp="sAdv"><span>Дополнительные настройки</span><span class="t2">›</span></button>
+      <button class="btn between" data-sp="sRt"><span>Маршрутизация</span><span class="t2">›</span></button>
+      <div class="sec" style="margin-top:34px"><div class="hdr">Тема<select id="themeSel" class="s"><option value="system">Как в системе</option><option value="light">Белая</option><option value="gray">Серая</option><option value="dark">Чёрная</option></select></div></div>
+      <div class="sec"><div class="hdr">Автообновление серверов<select id="autoSel" class="s"><option value="60000">каждую минуту</option><option value="300000">каждые 5 минут</option><option value="3600000">раз в час</option></select></div>
+        <div class="meta">Новые хосты из панели появятся в списке без перезапуска</div></div>
+      <div class="sec"><div class="hdr">Версия <span id="verTxt" class="meta" style="margin:0"></span></div><div class="meta" id="updHint"></div></div>
+      <div class="sec"><div class="hdr" id="acc">—</div><button class="btn c" id="out">Выйти из аккаунта</button></div>
+    </div>
+    <div id="sAdv" class="hide">
+      <button class="bk" data-sp="sMain">‹ Назад</button>
+      <h1 class="h1">Дополнительные настройки</h1>
+      <div class="sec"><div class="hdr">Автозапуск с Windows<button class="btn sm" id="asSw" style="width:auto;padding:6px 14px"></button></div>
+        <div class="hdr" style="margin-top:16px">Запускать свёрнутым<button class="btn sm" id="amSw" style="width:auto;padding:6px 14px"></button></div>
+        <div class="hdr" style="margin-top:16px">Автоподключение<button class="btn sm" id="acSw" style="width:auto;padding:6px 14px"></button></div>
+        <div class="meta" id="asHint"></div></div>
+      <div class="sec"><div class="hdr">Kill Switch<button class="btn sm" id="ksSw" style="width:auto;padding:6px 14px"></button></div>
+        <div class="meta">Блокировка интернета без VPN: если соединение неожиданно оборвётся, весь трафик будет заблокирован, пока вы не подключитесь снова или не выключите функцию. Снимается при выходе из приложения.</div><div class="meta" id="ksHint"></div></div>
+      <div class="sec"><div class="hdr">Показывать в Discord<button class="btn sm" id="rpcSw" style="width:auto;padding:6px 14px"></button></div><div class="meta" id="rpcHint"></div></div>
+    </div>
+    <div id="sRt" class="hide">
+      <button class="bk" data-sp="sMain">‹ Назад</button>
+      <h1 class="h1">Маршрутизация</h1>
+      <p class="sub" style="display:block">Какие приложения и сайты идут через VPN</p>
+      <div class="sec"><div class="hdr">Режим<select id="rtMode" class="s"><option value="bypass">Всё через VPN, кроме списка</option><option value="only">Только список через VPN</option></select></div><div class="meta" id="rtHint"></div></div>
+      <button class="btn between" data-sp="sRtA" style="margin-top:26px"><span>Маршрутизация приложений</span><span class="t2" id="rtAc">›</span></button>
+      <button class="btn between" data-sp="sRtD"><span>Маршрутизация доменов</span><span class="t2" id="rtDc">›</span></button>
+    </div>
+    <div id="sRtA" class="hide">
+      <button class="bk" data-sp="sRt">‹ Назад</button>
+      <h1 class="h1">Приложения</h1>
+      <div class="rows" id="rtApps"></div>
+      <div class="g2"><button class="btn sm" id="rtRun">Из запущенных</button><button class="btn sm" id="rtPick">Выбрать файл…</button></div>
+    </div>
+    <div id="sRtD" class="hide">
+      <button class="bk" data-sp="sRt">‹ Назад</button>
+      <h1 class="h1">Домены</h1>
+      <div class="rows" id="rtDoms"></div>
+      <div class="g2" style="grid-template-columns:1fr auto"><input id="rtDom" placeholder="example.com" style="margin:0"><button class="btn sm" id="rtAdd" style="width:auto;padding:0 18px">Добавить</button></div>
+    </div>
+  </section>
+  </main>
+
+  <nav>
+    <button data-p="pHome" class="act"><span data-ic="home"></span>Главная</button>
+    <button data-p="pSrv"><span data-ic="globe"></span>Серверы</button>
+    <button data-p="pDev"><span data-ic="pc"></span>Устройства</button>
+    <button data-p="pSet"><span data-ic="sliders"></span>Настройки</button>
+  </nav>
+  <div id="dlg" class="hide"><div class="box"><h3 class="tt" id="dlgT"></h3><div class="tx" id="dlgX"></div><div class="g2"><button class="btn" id="dlgN">Отмена</button><button class="btn pri" id="dlgY">OK</button></div></div></div>
+  <div id="sheet" class="hide"><div class="sheet"><div id="sheetBody"></div><button class="btn c" id="sheetClose" style="margin-top:18px">Закрыть</button></div></div>
+</div>
+
+<script src="flags.js"></script>
+<script>
+const IC={ping:'<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+refresh:'<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>',
+plus:'<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+trash:'<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+home:'<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+globe:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+pc:'<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+phone:'<svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
+sliders:'<svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>',
+power:'<svg viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/></svg>',
+chev:'<svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>'};
+const MARK='<svg width="26" height="22" viewBox="0 0 28 24" style="stroke:none"><path d="M2.5 20.5V4.2C2.5 3.35 3.52 2.91 4.14 3.5L14 12.9L23.86 3.5C24.48 2.91 25.5 3.35 25.5 4.2V14.5" fill="none" stroke="#A0A0A5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="stroke:#A0A0A5"/><circle cx="25.5" cy="19.5" r="2.2" fill="#A0A0A5"/></svg>';
+document.querySelectorAll('[data-ic]').forEach(e=>e.innerHTML=IC[e.dataset.ic]);
+document.querySelectorAll('[data-logo]').forEach(e=>e.innerHTML=MARK);
+{const im=new Image();im.onload=()=>document.querySelectorAll('[data-logo]').forEach(e=>e.innerHTML='<img src="logo.png" alt="">');im.src='logo.png'} // свой логотип: положите logo.png рядом с index.html
+
+const $=id=>document.getElementById(id);
+const ls={get:(k,d)=>{try{return localStorage.getItem(k)||d}catch{return d}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
+const S={theme:ls.get('theme','system'),server:ls.get('server',''),list:[],ping:{},sub:null,dev:null,user:null,subs:[],subId:ls.get('subId',''),auto:+ls.get('auto','300000'),rpc:ls.get('rpc','1')==='1',logLevel:ls.get('logLevel','warning'),sig:'',since:0};
+let autoDone=false,on=false,busy=false,reg=false,tgWait=false,watch=null,loading=false,autoT=null,lastLoad=0;
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rub=k=>(k/100).toFixed(2)+' ₽';
+let tT;function toast(m,c){$('tmsg').textContent=m;$('tdot').style.background=c||'var(--ok)';$('toast').classList.add('show');clearTimeout(tT);tT=setTimeout(()=>$('toast').classList.remove('show'),2400)}
+
+/* тема */
+const mq=matchMedia('(prefers-color-scheme: light)');
+function applyTheme(t){if(t==='auto')t='system';if(t==='black')t='dark';S.theme=t;ls.set('theme',t);document.documentElement.dataset.theme=t==='system'?(mq.matches?'light':'dark'):t;if($('themeSel'))$('themeSel').value=t}
+mq.onchange=()=>{if(S.theme==='system')applyTheme('system')};
+$('themeSel').onchange=()=>applyTheme($('themeSel').value);applyTheme(S.theme);
+
+/* вход */
+const view=v=>{if(v==='login')setTimeout(()=>{try{loadAuthOpts()}catch{}},0);$('login').classList.toggle('hide',v!=='login');$('app').classList.toggle('hide',v!=='app')};
+const say=(t,ok)=>{$('msg').className=ok?'er ok':'er';$('msg').textContent=t||''};
+function tab(r){reg=r;$('tL').classList.toggle('act',!r);$('tR').classList.toggle('act',r);$('nm').classList.toggle('hide',!r);$('go').textContent=r?'Зарегистрироваться':'Войти';$('fgW').classList.toggle('hide',r);$('pw').placeholder=r?'Пароль (минимум 8 символов)':'Пароль';say('')}
+$('tL').onclick=()=>tab(false);$('tR').onclick=()=>tab(true);
+$('eye').onclick=()=>{const h=$('pw').type==='password';$('pw').type=h?'text':'password';$('eye').textContent=h?'Скрыть':'Показать'};
+$('go').onclick=async()=>{say('');const e=$('em').value.trim(),p=$('pw').value;if(!e||!p)return say('Введите почту и пароль');
+  if(reg){if(p.length<8)return say('Пароль минимум 8 символов');const r=await vpn.register(e,p,$('nm').value.trim());if(r.ok){tab(false);$('em').value=e;say(r.data+' После подтверждения почты нажмите «Войти».',true)}else say(r.error)}
+  else{const r=await vpn.login(e,p);r.ok?enter(r.data):say(r.error)}};
+$('pw').onkeydown=e=>{if(e.key==='Enter')$('go').click()}; // НЕ возвращать false — это блокирует ввод
+$('fg').onclick=async()=>{const e=$('em').value.trim();if(!e)return say('Сначала введите почту');const r=await vpn.forgot(e);r.ok?say(r.data,true):say(r.error)};
+$('out').onclick=async()=>{await vpn.logout();S.list=[];S.sub=null;S.dev=null;S.subs=[];view('login')};
+
+/* навигация / окна */
+function go(p){['pHome','pSrv','pDev','pSet'].forEach(x=>$(x).classList.toggle('hide',x!==p));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('act',b.dataset.p===p));
+  $('main')&&0;document.querySelector('main').scrollTop=0;if(p==='pSrv'&&!S.list.length)loadServers(false);if(p==='pDev')loadDevices();if(p==='pSet'){setPage('sMain');renderRpc();renderKs()}}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.p));$('curSrv').onclick=()=>go('pSrv');$('brand').onclick=()=>go('pHome');
+function ask(text,ok,title){return new Promise(res=>{$('dlgT').textContent=title||'Подтверждение';$('dlgX').textContent=text;$('dlgY').textContent=ok||'Да';$('dlg').classList.remove('hide');
+  const f=v=>{$('dlg').classList.add('hide');$('dlgY').onclick=$('dlgN').onclick=null;res(v)};$('dlgY').onclick=()=>f(true);$('dlgN').onclick=()=>f(false)})}
+function sheet(h){$('sheetBody').innerHTML=h;$('sheet').classList.remove('hide')}
+function closeSheet(){$('sheet').classList.add('hide');if(watch){clearInterval(watch);watch=null}}
+$('sheetClose').onclick=closeSheet;
+
+/* аккаунт / подписка */
+async function init(){try{const r=await vpn.session();r.data?enter(r.data):view('login')}catch(e){view('login');say('Ошибка запуска: '+e.message)}}
+async function enter(u){view('app');go('pHome');setUser(u);vpn.setRpc(S.rpc);
+  await vpn.setSub(S.subId);const sr=await vpn.subs();S.subs=sr.ok?sr.data:[];
+  if(S.subId&&S.subs.length&&!S.subs.find(x=>x.id===S.subId)){S.subId='';ls.set('subId','');await vpn.setSub('')}
+  if(!S.subId&&S.subs.length){S.subId=S.subs[0].id;ls.set('subId',S.subId);await vpn.setSub(S.subId)}
+  const m=await vpn.me();if(m.ok&&m.data)setUser(m.data);else if(m.error==='AUTH')return view('login');
+  await refreshSub();poll();loadServers(false).then(()=>{if(S.autoc&&!autoDone&&!on&&!busy&&S.server){autoDone=true;$('big').click()}});setAuto()}
+function setUser(u){if(!u)return;S.user=u;const w=u.email||(u.username?'@'+u.username:'');$('acc').textContent=w;
+  const b=u.balance_kopeks!=null?u.balance_kopeks/100:u.balance_rubles;if(b!=null)$('bal').textContent=Number(b).toFixed(2)+' ₽'}
+const daysLeft=s=>{if(s.days_left!=null)return s.days_left;const m=/(\d+)\s*d/i.exec(s.time_left_display||'');return m?+m[1]:null};
+async function refreshSub(){const r=await vpn.sub();if(!r.ok){if(r.error==='AUTH')return view('login');return $('err2').textContent=r.error}
+  S.sub=r.data.subscription||null;const d=await vpn.devices();if(d.ok){S.dev=d.data;if(S.dev.limit==null&&S.sub)S.dev.limit=S.sub.device_limit}renderInfo();renderDevices()}
+function renderInfo(){const s=S.sub;$('tarCh').classList.toggle('hide',S.subs.length<2);
+  if(!s){$('tar').textContent='нет подписки';return}
+  $('tar').textContent=s.tariff_name||(s.is_trial?'Пробный':'Подписка');const dl=daysLeft(s);
+  $('left').textContent=s.is_expired?'истекла':dl!=null?dl+' дн.':(s.time_left_display||'—');
+  const lim=S.dev&&S.dev.limit!=null?S.dev.limit:s.device_limit;$('dev').textContent=S.dev?`${S.dev.count} / ${lim||'∞'}`:'—';
+  const used=(s.traffic_used_gb||0).toFixed(1);$('tr').textContent=s.traffic_limit_gb?`${used} / ${s.traffic_limit_gb} ГБ`:`${used} ГБ / безлимит`;
+  $('subHead').textContent=`${used} ГБ / ${s.traffic_limit_gb?s.traffic_limit_gb+' ГБ':'∞'}${dl!=null?' · '+dl+' дн.':''}${S.upd?' · обновлено '+S.upd:''}`}
+$('tarRow').onclick=()=>{if(S.subs.length<2)return;
+  sheet(`<h2>Тариф</h2><div class="t2" style="font-size:14px;margin-bottom:10px">Выберите подписку для подключения</div>`+S.subs.map(x=>`<button class="btn between ${x.id===S.subId?'act':''}" data-sid="${esc(x.id)}"><span>${esc(x.name)}</span><span class="t2">${x.days!=null?x.days+' дн.':esc(x.status)}</span></button>`).join(''));
+  document.querySelectorAll('[data-sid]').forEach(b=>b.onclick=()=>setSubId(b.dataset.sid))};
+async function setSubId(id){if(id===S.subId)return closeSheet();S.subId=id;ls.set('subId',id);if(on)await vpn.disconnect();await vpn.setSub(id);S.list=[];S.sig='';S.ping={};S.sub=null;S.dev=null;closeSheet();
+  await refreshSub();loadServers(true);poll();toast('Тариф переключён'+(on?'. Подключитесь заново':''))}
+
+/* серверы */
+const CC={россия:'RU',финляндия:'FI',германия:'DE',нидерланды:'NL',эстония:'EE',дания:'DK',сша:'US',франция:'FR',польша:'PL',poland:'PL',швеция:'SE',латвия:'LV',литва:'LT',казахстан:'KZ',турция:'TR',великобритания:'GB',швейцария:'CH',сингапур:'SG',япония:'JP',австрия:'AT',чехия:'CZ',италия:'IT',испания:'ES',канада:'CA',украина:'UA',беларусь:'BY',армения:'AM',грузия:'GE',израиль:'IL',оаэ:'AE',индия:'IN',сербия:'RS',болгария:'BG',румыния:'RO',венгрия:'HU',норвегия:'NO',португалия:'PT',авто:'EU'};
+function parse(name){let code='',label=name;const m=name.match(/[\u{1F1E6}-\u{1F1FF}]{2}/u);
+  if(m){code=[...m[0]].map(c=>String.fromCharCode(c.codePointAt(0)-0x1F1E6+65)).join('');label=name.replace(/[\u{1F1E6}-\u{1F1FF}]{2}\s*/gu,'').trim()||name}
+  if(!code){const l=label.toLowerCase();for(const k in CC)if(l.includes(k)){code=CC[k];break}}return{code,label}}
+function flag(code){const f=window.FLAGS&&code&&window.FLAGS[code.toLowerCase()];return f?`<img class="fl" src="${f}" alt="">`:`<span class="fl">${esc(code||'•')}</span>`}
+async function loadServers(force,quiet){if(loading)return;loading=true;$('srvErr').textContent='';
+  if(!quiet&&force)$('list').innerHTML='<div class="t2" style="padding:12px">Загружаю…</div>';
+  const r=await vpn.servers({force});loading=false;
+  if(!r.ok){if(!quiet){$('list').innerHTML='';$('srvErr').textContent=r.error}return}
+  const old=S.sig;S.list=r.data.list;S.sig=r.data.sig;lastLoad=Date.now();
+  if(!S.list.find(x=>x.tag===S.server)){S.server=S.list[0]?S.list[0].tag:'';ls.set('server',S.server)}
+  S.upd=new Date(r.data.at||Date.now()).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'})+(r.data.stale?' · из кэша':'');
+  if(quiet&&old&&old!==S.sig)toast('Список серверов обновлён');
+  renderServers();renderCur();renderInfo()}
+function renderServers(){$('list').innerHTML=S.list.map((s,i)=>{const p=parse(s.tag),pg=S.ping[s.tag],pt=pg==null?'':pg<0?'—':pg+' мс',col=pg>0?(pg<120?'var(--ok)':pg<250?'#ff9f0a':'var(--er)'):'var(--t2)',pr=s.auto?'Автовыбор':[s.proto,s.net,s.sec].filter(Boolean).join(' / ');
+  return `<button class="srv ${s.tag===S.server?'sel':''}" data-i="${i}">${flag(p.code)}<div class="grow"><div class="n">${esc(p.label)}</div><div class="d">${esc(pr)}</div></div><div class="mt" style="color:${col}">${esc(pt)}</div>${s.tag===S.server?'<i class="dotg"></i>':''}</button>`}).join('')||'<div class="t2" style="padding:12px">Нет серверов</div>';
+  document.querySelectorAll('.srv').forEach(el=>el.onclick=()=>pick(S.list[+el.dataset.i].tag))}
+function renderCur(){const s=S.list.find(x=>x.tag===S.server);if(!s){$('curName').textContent='—';return}const p=parse(s.tag),pg=S.ping[s.tag];
+  $('curFlag').innerHTML=flag(p.code);$('curName').textContent=p.label;$('curDesc').textContent=s.desc||'';$('curMeta').textContent=(s.auto?'Автовыбор':[s.proto,s.net,s.sec].filter(Boolean).join(' / '))+(pg>0?' · '+pg+' мс':'')}
+async function pick(t){S.server=t;ls.set('server',t);renderServers();renderCur();if(on)$('hTxt').textContent='Переключаю…';const r=await vpn.pick(t);if(!r.ok)$('err2').textContent=r.error;else toast('Сервер: '+parse(t).label);poll()}
+let pinging=false;$('pingAll').onclick=async()=>{if(pinging)return;pinging=true;$('pingLbl').textContent='Проверка пинга…';S.list.forEach(s=>S.ping[s.tag]=undefined);renderServers();
+  const r=await vpn.pingMany(S.list.map(s=>s.tag));if(r.ok)Object.assign(S.ping,r.data);pinging=false;$('pingLbl').textContent='Тест пинга';renderServers();renderCur()};
+$('reload').onclick=()=>loadServers(true);
+function setAuto(){clearInterval(autoT);autoT=setInterval(()=>loadServers(true,true),S.auto)}
+$('autoSel').value=String(S.auto);$('autoSel').onchange=()=>{S.auto=+$('autoSel').value;ls.set('auto',S.auto);setAuto();toast('Автообновление изменено')};
+window.addEventListener('focus',()=>{if(!$('app').classList.contains('hide')&&Date.now()-lastLoad>30000)loadServers(true,true)});
+
+/* устройства */
+async function loadDevices(){$('devErr').textContent='';const r=await vpn.devices();if(!r.ok)return $('devErr').textContent=r.error;S.dev=r.data;if(S.dev.limit==null&&S.sub)S.dev.limit=S.sub.device_limit;renderDevices();renderInfo()}
+function renderDevices(){const d=S.dev;if(!d)return;$('devSub').textContent=`Подключено ${d.count} из ${d.limit||'∞'} устройств`;
+  $('devList').innerHTML=d.list.map(x=>`<div class="dev">${/android|ios|iphone|phone/i.test(x.platform||'')?IC.phone:IC.pc}<div class="grow"><div class="n">${esc(x.model||x.platform||'Устройство')}${x.self?'<span class="tag">это устройство</span>':''}</div><div class="s">${esc(x.platform)}${x.platform?' · ':''}${esc(x.hwid.slice(0,10))}…</div></div><button class="btn sm dng" style="width:auto;padding:8px 14px" data-h="${esc(x.hwid)}" data-s="${x.self?1:0}">Удалить</button></div>`).join('')||'<div class="t2" style="padding:12px 0">Нет подключённых устройств</div>';
+  document.querySelectorAll('[data-h]').forEach(b=>b.onclick=async()=>{if(!await ask(b.dataset.s==='1'?'Это текущее устройство. Удалить его из аккаунта? Оно привяжется заново при следующем обновлении подписки.':'Удалить это устройство из бота и панели?'))return;
+    const r=await vpn.delDevice(b.dataset.h);if(!r.ok)return $('devErr').textContent=r.error;toast('Устройство удалено','var(--er)');loadDevices()})}
+$('devReset').onclick=async()=>{if(!await ask('Удалить ВСЕ устройства из аккаунта? Текущее привяжется заново при следующем обновлении подписки.'))return;const r=await vpn.resetDevices();if(!r.ok)return $('devErr').textContent=r.error;toast('Устройства сброшены','var(--er)');loadDevices()};
+
+
+/* докупка устройств */
+const num=(...v)=>{for(const x of v)if(x!=null&&x!==''&&!isNaN(+x))return +x;return null};
+async function openDevBuy(){sheet('<h2>Докупить устройства</h2><div class="t2">Загружаю данные из кабинета…</div>');
+  const lim0=S.dev&&S.dev.limit!=null?S.dev.limit:(S.sub&&S.sub.device_limit);
+  let n=1,info={},busy=0;
+  const load=async()=>{const t=++busy;const r=await vpn.devicePrice(n);if(t!==busy)return;if(!r.ok){info={err:r.error};return}info=r.data||{}};
+  const view=()=>{const cur=num(info.current_device_limit,info.current_limit,lim0),mx=num(info.max_device_limit,info.max_devices,info.device_limit_max);
+    let can=num(info.max_can_add,info.max_addable,info.can_add_max,info.max_to_add);if(can==null&&mx!=null&&cur!=null)can=mx-cur;
+    const per=num(info.price_per_device_kopeks,info.per_device_price_kopeks,info.device_price_kopeks);
+    const tot=num(info.total_price_kopeks,info.price_kopeks,info.final_price_kopeks,per!=null?per*n:null);
+    const days=num(info.days_left,info.days,info.remaining_days),bal=S.user&&S.user.balance_kopeks!=null?S.user.balance_kopeks:null;
+    const blocked=info.err||info.available===false||info.can_add===false||(can!=null&&can<1);
+    sheet(`<h2>Докупить устройства</h2><div class="t2" style="font-size:14px">${esc((S.sub&&S.sub.tariff_name)||'Подписка')} · баланс: ${bal!=null?rub(bal):'—'}</div>
+    <div class="stp"><button id="dm" ${n<=1?'disabled':''}>−</button><div class="num">${n}</div><button id="dp" ${can!=null&&n>=can?'disabled':''}>+</button></div>
+    <div class="ctr t2" style="font-size:13px">Текущий лимит: ${cur!=null?cur:'—'}${mx!=null?' / максимум '+mx:''}${can!=null?' · можно добавить: '+can:''}</div>
+    ${per!=null?`<div class="ctr t2" style="font-size:13px;margin-top:6px">${rub(per)} за устройство${days!=null?' ('+days+' дн.)':''}</div>`:''}
+    ${tot!=null?`<div class="ctr" style="font-size:24px;margin-top:10px">${rub(tot)}</div>`:''}
+    ${info.err?`<div class="er ctr">${esc(info.err)}</div>`:blocked?'<div class="er ctr">Докупка недоступна для этого тарифа</div>':''}
+    <div id="rm" class="ctr" style="margin-top:10px;font-size:13px"></div>
+    <button class="btn c" id="dbuy" ${blocked?'disabled':''} style="margin-top:14px">Купить с баланса</button>`);
+    const re=async d=>{n=Math.max(1,n+d);view();await load();view()};
+    if($('dm'))$('dm').onclick=()=>re(-1);if($('dp'))$('dp').onclick=()=>re(1);
+    if($('dbuy'))$('dbuy').onclick=async()=>{const rm=(t,ok)=>{$('rm').className=ok?'ok ctr':'er ctr';$('rm').textContent=t};
+      if(tot!=null&&bal!=null&&tot>bal)return rm(`Не хватает ${rub(tot-bal)}. Пополните баланс кнопкой вверху.`);
+      if(!await ask(`Добавить ${n} устр.${tot!=null?' за '+rub(tot):''}? Деньги спишутся с баланса.`,'Купить'))return;
+      $('dbuy').disabled=true;const q=await vpn.deviceBuy(n);if(!q.ok){$('dbuy').disabled=false;return rm(q.error)}
+      closeSheet();toast('Лимит устройств увеличен на '+n);const m=await vpn.me();if(m.ok&&m.data)setUser(m.data);refreshSub()}};
+  await load();view()}
+$('devBuy').onclick=openDevBuy;
+/* баланс */
+$('balBtn').onclick=openTopup;
+async function openTopup(){sheet('<h2>Пополнение баланса</h2><div class="t2">Загружаю способы оплаты…</div>');const r=await vpn.methods();
+  if(!r.ok)return sheet(`<h2>Пополнение баланса</h2><div class="er">${esc(r.error)}</div>`);
+  const ms=(r.data||[]).filter(m=>m.is_available!==false);if(!ms.length)return sheet('<h2>Пополнение баланса</h2><div class="t2">Нет доступных способов оплаты</div>');
+  let m=ms[0],opt='';
+  const draw=()=>{const min=Math.ceil((m.min_amount_kopeks||1000)/100),os=(m.options||[]).map(o=>({id:o.id||o.code||o.value,name:o.name||o.title||o.label||o.id}));
+    if(os.length&&!os.find(o=>o.id===opt))opt=os[0].id;if(!os.length)opt='';const keep=$('amt')?$('amt').value:'';
+    sheet(`<h2>Пополнение баланса</h2><div class="t2" style="font-size:14px">Сейчас: ${S.user&&S.user.balance_kopeks!=null?rub(S.user.balance_kopeks):'—'}</div>
+      <div class="g2" id="ms">${ms.map((x,i)=>`<button class="btn sm ${x.id===m.id?'act':''}" data-i="${i}">${esc(x.name)}</button>`).join('')}</div>
+      ${os.length?`<select id="op">${os.map(o=>`<option value="${esc(o.id)}" ${o.id===opt?'selected':''}>${esc(o.name)}</option>`).join('')}</select>`:''}
+      <input id="amt" type="number" min="${min}" placeholder="Сумма, ₽ (от ${min})" value="${keep}" style="-webkit-user-select:text">
+      <div class="g3">${[150,300,500].map(v=>`<button class="btn sm" data-v="${v}">${v} ₽</button>`).join('')}</div>
+      <button class="btn c" id="pay" style="color:var(--tx)">Пополнить</button><div id="pm" style="margin-top:12px;font-size:13px"></div>`);
+    document.querySelectorAll('#ms button').forEach(b=>b.onclick=()=>{m=ms[+b.dataset.i];draw()});document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>$('amt').value=b.dataset.v);
+    if($('op'))$('op').onchange=()=>opt=$('op').value;
+    $('pay').onclick=async()=>{const v=parseFloat(($('amt').value||'').replace(',','.')),pm=(t,ok)=>{$('pm').className=ok?'ok':'er';$('pm').textContent=t};
+      if(!(v>=min))return pm('Минимальная сумма — '+min+' ₽');const x=await vpn.topup({amount_kopeks:Math.round(v*100),payment_method:m.id,payment_option:opt||undefined});
+      if(!x.ok)return pm(/Failed to create/i.test(x.error)?x.error+'. Платёжная система не приняла сумму — попробуйте сумму побольше (от 100 ₽) или другой способ.':x.error);
+      pm('Страница оплаты открыта в браузере. Баланс обновится автоматически.',true);watchBalance()}};
+  draw()}
+function watchBalance(){const start=S.user&&S.user.balance_kopeks;let n=0;if(watch)clearInterval(watch);
+  watch=setInterval(async()=>{const m=await vpn.me();if(m.ok&&m.data){setUser(m.data);if(m.data.balance_kopeks!==start){clearInterval(watch);watch=null;closeSheet();refreshSub();toast('Баланс пополнен')}}if(++n>36){clearInterval(watch);watch=null}},5000)}
+
+/* продление: варианты и цены берутся из кабинета */
+function renewList(d){
+  let a=Array.isArray(d)?d:(d&&(d.periods||d.options||d.renewal_options||d.renewal_periods||d.available_periods||d.prices||d.items||d.data))||null;
+  if(!a&&d&&typeof d==='object'){const ks=Object.keys(d).filter(k=>/^\d+$/.test(k));if(ks.length)a=ks.map(k=>typeof d[k]==='object'?{days:+k,...d[k]}:{days:+k,price_kopeks:d[k]})}
+  return(Array.isArray(a)?a:[]).map(x=>{if(typeof x==='number')return{days:x};
+    const days=x.period_days??x.days??x.period??x.duration_days??(x.months?x.months*30:null)??x.value;
+    let price=x.price_kopeks??x.final_price_kopeks??x.total_price_kopeks??x.amount_kopeks??null;
+    if(price==null&&x.price_rubles!=null)price=Math.round(x.price_rubles*100);
+    return{days,price,text:x.price_label||x.price_display||x.formatted_price||'',label:x.label||x.title||x.name||x.period_label||'',disc:x.discount_percent||x.discount||0}}).filter(x=>x.days)}
+$('renewBtn').onclick=async()=>{sheet('<h2>Продление подписки</h2><div class="t2">Загружаю варианты из кабинета…</div>');const r=await vpn.renewOptions();
+  if(!r.ok)return sheet(`<h2>Продление подписки</h2><div class="er">${esc(r.error)}</div>`);
+  const list=renewList(r.data);
+  if(!list.length)return sheet('<h2>Продление подписки</h2><div class="t2">Кабинет не вернул варианты продления для этого тарифа (возможно, подписка бессрочная или продление делается через покупку тарифа). Ответ кабинета записан в логи [renew].</div><button class="btn c" onclick="vpn.openCabinet()">Открыть кабинет</button>');
+  const bal=()=>S.user&&S.user.balance_kopeks!=null?S.user.balance_kopeks:null;
+  sheet(`<h2>Продление подписки</h2><div class="t2" style="font-size:14px">${esc((S.sub&&S.sub.tariff_name)||'Подписка')} · оплата с баланса: ${bal()!=null?rub(bal()):'—'}</div>${list.map((x,i)=>`<button class="btn between" data-i="${i}"><span>${esc(x.label||x.days+' дн.')}${x.disc?` <span class="t2">−${esc(x.disc)}%</span>`:''}</span><span class="t2">${x.price!=null?rub(x.price):esc(x.text)}</span></button>`).join('')}<div id="rm" style="margin-top:12px;font-size:13px"></div>`);
+  document.querySelectorAll('[data-i]').forEach(b=>b.onclick=async()=>{const x=list[+b.dataset.i],rm=(t,ok)=>{$('rm').className=ok?'ok':'er';$('rm').textContent=t};
+    if(x.price!=null&&bal()!=null&&x.price>bal())return rm(`Не хватает ${rub(x.price-bal())}. Пополните баланс кнопкой вверху.`);
+    if(!await ask(`Продлить на ${x.days} дн.${x.price!=null?' за '+rub(x.price):''}? Деньги спишутся с баланса.`))return;
+    const q=await vpn.renew(x.days);if(!q.ok)return rm(q.error+(/средств|balance|insufficient/i.test(q.error)?' — пополните баланс (кнопка вверху).':''));
+    closeSheet();toast('Подписка продлена на '+x.days+' дн.');const m=await vpn.me();if(m.ok&&m.data)setUser(m.data);refreshSub()})};
+
+/* подключение */
+$('big').onclick=async()=>{if(busy)return;busy=true;$('err2').textContent='';
+  if(on){$('hTxt').textContent='Отключаю…';await vpn.disconnect()}else{$('hTxt').textContent='Подключаю…';const r=await vpn.connect({server:S.server,logLevel:S.logLevel});if(!r.ok)$('err2').textContent=r.error}
+  busy=false;poll()};
+async function poll(){const r=await vpn.status();if(!r.ok)return;on=r.data.running;if(on&&!S.since)S.since=Date.now();if(!on)S.since=0;
+  $('big').classList.toggle('on',on);$('hDot').style.background=on?'var(--ok)':'var(--t3)';
+  if(!busy){$('hTxt').textContent=r.data.op==='switch'?'Переключаю…':on?'Подключено к '+(parse((S.list.find(x=>x.tag===S.server)||{tag:'—'}).tag).label):'Отключено';
+    $('cT').textContent=on?'Защита активна':'Соединение остановлено';if(!on)$('cS').textContent='Нажмите для подключения'}
+  if(r.data.error)$('err2').textContent=r.data.error;else if(r.data.warn)$('err2').textContent=r.data.warn;
+  if(r.data.ea&&r.data.ea!==S.ea){S.ea=r.data.ea;if(S.list.length)loadServers(false,true)}}
+setInterval(()=>{if(on&&S.since){const t=Math.floor((Date.now()-S.since)/1000),p=n=>String(n).padStart(2,'0');$('cS').textContent=`${p(t/3600|0)}:${p(t%3600/60|0)}:${p(t%60)} · Xray`}},1000);
+const live=()=>!$('app').classList.contains('hide');
+setInterval(()=>{if(live())poll()},3000);
+setInterval(async()=>{if(!live())return;refreshSub();const m=await vpn.me();if(m.ok&&m.data)setUser(m.data)},60000);
+
+/* настройки: Discord, логи */
+async function renderRpc(){const r=await vpn.rpcInfo(),i=r.data||{};$('rpcSw').classList.toggle('act',S.rpc);$('rpcSw').textContent=S.rpc?'Вкл':'Выкл';
+  $('rpcHint').textContent=!i.configured?'Не задан Discord Application ID (RPC.clientId в main.js)':!S.rpc?'Выключено':i.connected?'Discord подключён':'Ожидаю запуск Discord…'}
+$('rpcSw').onclick=async()=>{S.rpc=!S.rpc;ls.set('rpc',S.rpc?'1':'0');await vpn.setRpc(S.rpc);setTimeout(renderRpc,800);renderRpc()};
+init();
+
+/* обновление клиента */
+async function renderUpd(){const r=await vpn.updInfo(),u=r.data||{};$('verTxt').textContent='v'+(u.current||'');
+ $('updHint').textContent=!u.enabled?'Автообновление работает в установленной версии':({idle:'Проверка обновлений включена',checking:'Проверяю…',latest:'Установлена последняя версия',downloading:'Скачиваю v'+u.version+' — '+u.percent+'%',ready:'Версия v'+u.version+' загружена',error:'Не удалось проверить: '+u.error,off:''})[u.state]||'';
+ const dl=u.state==='downloading',rd=u.state==='ready';$('updOv').classList.toggle('hide',!(dl||rd));
+ if(dl||rd){$('uoT').textContent='Доступно обновление v'+u.version;$('uoP').textContent=rd?'Для продолжения работы нужно обновить приложение. Оно перезапустится автоматически.':'Загружаю новую версию…';
+  $('uoPr').classList.toggle('hide',!dl);$('uoBar').style.width=(u.percent||0)+'%';$('uoPc').textContent=(u.percent||0)+'%';$('uoB').classList.toggle('hide',!rd)}}
+$('uoB').onclick=async()=>{$('uoB').disabled=true;$('uoB').textContent='Устанавливаю…';await vpn.updInstall()};
+/* автозапуск */
+async function renderAuto(){const r=await vpn.autoGet(),a=r.data||{};S.as=!!a.on;S.am=!!a.min;
+ const set=(id,v,dis)=>{const e=$(id);e.classList.toggle('act',v);e.textContent=v?'Вкл':'Выкл';e.disabled=!!dis};
+ set('asSw',S.as,a.packaged===false);set('amSw',S.am,!S.as);set('acSw',S.autoc);
+ $('asHint').textContent=a.packaged===false?'Автозапуск доступен только в установленной версии':'Запуск при входе в Windows с правами администратора, без запроса UAC'}
+$('asSw').onclick=async()=>{const r=await vpn.autoSet(!S.as,S.am);if(!r.ok)toast(r.error,'var(--er)');renderAuto()};
+$('amSw').onclick=async()=>{const r=await vpn.autoSet(true,!S.am);if(!r.ok)toast(r.error,'var(--er)');renderAuto()};
+$('acSw').onclick=()=>{S.autoc=!S.autoc;ls.set('autoc',S.autoc?'1':'0');renderAuto()};
+S.autoc=ls.get('autoc','0')==='1';setTimeout(renderAuto,600);
+setInterval(()=>{if(document.hidden)return;renderUpd()},4000);setTimeout(renderUpd,500);
+
+/* способы входа */
+let AO=null,AOt=0;
+async function loadAuthOpts(){if(AO&&Date.now()-AOt<60000)return applyAO();const r=await vpn.authOpts();AO=r.ok?r.data:{email:true,reg:false,telegram:false,oauth:[]};AOt=Date.now();applyAO()}
+function applyAO(){const o=AO;const e=o.email;['tabs','em','pwf','go','fgW'].forEach(i=>$(i).classList.toggle('hide',!e));if(!e)$('nm').classList.add('hide');
+ $('tabs').classList.toggle('hide',!e||!o.reg);if(!o.reg&&reg)tab(false);
+ const b=[];if(o.telegram)b.push('<button class="btn c" data-alt="tg">Войти через Telegram</button>');
+ for(const p of o.oauth)b.push(`<button class="btn c" data-alt="${esc(p.name)}">Войти через ${esc(p.title)}</button>`);
+ $('alt').innerHTML=b.join('');$('altSep').classList.toggle('hide',!b.length||!e);
+ document.querySelectorAll('[data-alt]').forEach(x=>x.onclick=async()=>{const k=x.dataset.alt;
+  if(k==='tg'){if(tgWait){await vpn.tgCancel();return}tgWait=true;const t=x.textContent;x.textContent='Жду подтверждения в Telegram… (отмена)';say('Откроется Telegram — нажмите Start у бота',true);
+   const r=await vpn.tg();tgWait=false;x.textContent=t;r.ok?enter(r.data):say(r.error)}
+  else{say('Откроется окно кабинета — выберите там способ входа',true);const r=await vpn.webLogin(k);r.ok?enter(r.data):say(r.error)}})}
+/* маршрутизация */
+let RT={mode:'bypass',apps:[],domains:[]};
+async function loadRoute(){const r=await vpn.routeGet();if(r.ok)RT=r.data;renderRoute()}
+function renderRoute(){$('rtMode').value=RT.mode;$('rtAc').textContent=(RT.apps.length||'')+' ›';$('rtDc').textContent=(RT.domains.length||'')+' ›';
+ $('rtApps').innerHTML=RT.apps.length?RT.apps.map((a,i)=>`<div class="rit"><div class="grow" style="min-width:0"><div>${esc(a.name)}</div>${a.path?`<div class="t2">${esc(a.path)}</div>`:''}</div><button data-da="${i}">×</button></div>`).join(''):'<div class="empty">Список пуст</div>';
+ $('rtDoms').innerHTML=RT.domains.length?RT.domains.map((x,i)=>`<div class="rit"><div class="grow">${esc(x)}</div><button data-dd="${i}">×</button></div>`).join(''):'<div class="empty">Список пуст</div>';
+ $('rtHint').textContent=RT.mode==='only'?'Через VPN пойдут только приложения и домены из списка, остальное — напрямую':'Приложения и домены из списка пойдут напрямую, минуя VPN';
+ document.querySelectorAll('[data-da]').forEach(b=>b.onclick=()=>{RT.apps.splice(+b.dataset.da,1);saveRoute()});
+ document.querySelectorAll('[data-dd]').forEach(b=>b.onclick=()=>{RT.domains.splice(+b.dataset.dd,1);saveRoute()})}
+let rtT=null;
+async function saveRoute(){const r=await vpn.routeSet(RT);if(r.ok)RT=r.data;renderRoute();clearTimeout(rtT);
+ rtT=setTimeout(async()=>{if(on&&await ask('Маршрутизация изменена. Переподключиться сейчас, чтобы применить?','Переподключить')){busy=true;$('hTxt').textContent='Переподключаю…';await vpn.disconnect();const r=await vpn.connect({server:S.server,logLevel:S.logLevel});if(!r.ok)$('err2').textContent=r.error;busy=false;poll()}else if(on)toast('Применится при следующем подключении','var(--t2)')},600)}
+$('rtMode').onchange=()=>{RT.mode=$('rtMode').value;saveRoute()};
+$('rtAdd').onclick=()=>{const v=$('rtDom').value.trim();if(!v)return;RT.domains.push(v);$('rtDom').value='';saveRoute()};
+$('rtDom').onkeydown=e=>{if(e.key==='Enter')$('rtAdd').click()};
+$('rtPick').onclick=async()=>{const r=await vpn.pickExe();if(r.ok&&r.data){RT.apps.push(r.data);saveRoute()}};
+$('rtRun').onclick=async()=>{sheet('<h2>Запущенные приложения</h2><div class="t2">Загружаю…</div>');const r=await vpn.procs(),l=(r.ok&&r.data)||[];
+ if(!l.length)return sheet('<h2>Запущенные приложения</h2><div class="t2">Окна приложений не найдены. Используйте «Выбрать файл…».</div>');
+ sheet(`<h2>Запущенные приложения</h2><div class="t2" style="font-size:13px;margin-bottom:6px">Нажмите, чтобы добавить в список</div>${l.map((x,i)=>{const has=RT.apps.some(a=>a.name.toLowerCase()===x.name.toLowerCase());return `<button class="btn between" data-p="${i}" ${has?'disabled':''}><span style="min-width:0"><div>${esc(x.name)}</div><div class="t2" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.title)}</div></span><span class="t2">${has?'добавлено':'+'}</span></button>`}).join('')}`);
+ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{RT.apps.push(l[+b.dataset.p]);closeSheet();saveRoute()})};
+setTimeout(loadRoute,400);
+
+/* страницы настроек */
+const SETP=['sMain','sAdv','sRt','sRtA','sRtD'];
+function setPage(id){SETP.forEach(x=>$(x).classList.toggle('hide',x!==id));document.querySelector('main').scrollTop=0}
+document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>setPage(b.dataset.sp));
+async function renderKs(){const r=await vpn.ksGet();S.ks=!!(r.data&&r.data.on);$('ksSw').classList.toggle('act',S.ks);$('ksSw').textContent=S.ks?'Вкл':'Выкл';
+ $('ksHint').textContent=r.data&&r.data.active?'Сейчас интернет заблокирован — подключитесь к VPN':''}
+$('ksSw').onclick=async()=>{if(!S.ks&&!await ask('При обрыве VPN интернет будет заблокирован до повторного подключения. Включить Kill Switch?','Включить'))return;const r=await vpn.ksSet(!S.ks);if(!r.ok)toast(r.error,'var(--er)');renderKs()};
+setInterval(()=>{if(!document.hidden&&!$('pSet').classList.contains('hide'))renderKs()},4000);
+</script></body></html>

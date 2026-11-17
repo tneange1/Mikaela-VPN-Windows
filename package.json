@@ -1,0 +1,58 @@
+{
+  "name": "mikaela-vpn",
+  "productName": "Mikaela VPN",
+  "version": "1.0.8",
+  "description": "Mikaela VPN client (sing-box)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "xyz.mikaelavpn.client",
+    "productName": "Mikaela VPN",
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "flags.js",
+      "fonts.css",
+      "logo.png",
+      "icon.png",
+      "icon.ico"
+    ],
+    "extraResources": [
+      {
+        "from": "bin",
+        "to": "bin"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "requestedExecutionLevel": "requireAdministrator",
+      "icon": "icon.ico",
+      "artifactName": "Mikaela-VPN.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "tneange1",
+        "repo": "Mikaela-VPN-Windows",
+        "releaseType": "release"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  }
+}

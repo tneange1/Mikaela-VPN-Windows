@@ -1,0 +1,50 @@
+name: build-windows
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+env:
+  SINGBOX_VERSION: "1.12.8"
+jobs:
+  win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Download sing-box, Xray-core, wintun
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path bin -Force | Out-Null
+          $v = $env:SINGBOX_VERSION
+          Invoke-WebRequest "https://github.com/SagerNet/sing-box/releases/download/v$v/sing-box-$v-windows-amd64.zip" -OutFile sb.zip
+          Expand-Archive sb.zip -DestinationPath sb
+          Copy-Item "sb/sing-box-$v-windows-amd64/*" -Destination bin -Recurse -Force
+          Invoke-WebRequest "https://github.com/XTLS/Xray-core/releases/latest/download/Xray-windows-64.zip" -OutFile xr.zip
+          Expand-Archive xr.zip -DestinationPath xr
+          Copy-Item xr/xray.exe, xr/geoip.dat, xr/geosite.dat -Destination bin -Force
+          Invoke-WebRequest "https://www.wintun.net/builds/wintun-0.14.1.zip" -OutFile wt.zip
+          Expand-Archive wt.zip -DestinationPath wt
+          Copy-Item wt/wintun/bin/amd64/wintun.dll -Destination bin -Force
+          Get-ChildItem bin | Select-Object Name, Length
+      - name: Version from tag
+        shell: pwsh
+        run: |
+          $t = "${{ github.ref_name }}"
+          if ($t -like 'v*') { npm version $t.Substring(1) --no-git-tag-version --allow-same-version }
+      - run: npm install
+      - name: Build (publish only on tag v*)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ("${{ github.ref }}".StartsWith("refs/tags/v")) { npx electron-builder --win --x64 --publish always }
+          else { npx electron-builder --win --x64 --publish never }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mikaela-VPN-win
+          path: dist/*.exe
+          if-no-files-found: error
