@@ -5,11 +5,13 @@ const { spawn, execFileSync, execFile } = require('child_process');
 const BASE = process.env.MIKAELA_API || 'https://cabinet.mikaelavpn.xyz';
 const CABINET = 'https://cabinet.mikaelavpn.xyz/';
 const UA = 'MikaelaVPN/1.0 (Windows)';     // свой User-Agent: на него настраивается Response Rule в панели
+const PRE_PORT = 10880, PROXY_PORT = 10860;  // PRE_PORT+i: отдельные Xray для предварительной маршрутизации; PROXY_PORT: системный прокси
 const XRAY_PORT = 10870;                    // локальный socks Xray (не пересекается с Happ: 10808/10809)
 const REG = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings';
 const BAD = ['0.0.0.0', '127.0.0.1', 'localhost', '::', '::1'];
 
 let win = null, tgCancel = false, session = null, prefix = null;
+let pre = [], proxyActive = false;
 let xray = null, sb = null, stopping = false, restarting = false, lastFail = '', lastLevel = 'warning', curTag = '';
 let lastWarn = '';
 let entries = null, entriesAt = 0, disk = null, stale = false, bgBusy = false; // disk: кэш подписки {url, at, arr}
@@ -403,8 +405,16 @@ function logAdapters(tag) { // виден ли TUN-адаптер
 
 // ---------- процессы: Xray (ядро) + sing-box (TUN) ----------
 const proxyOffSync = () => { try { execFileSync('reg', ['add', REG, '/v', 'ProxyEnable', '/t', 'REG_DWORD', '/d', '0', '/f'], { windowsHide: true }); } catch {} };
+const INET_REFRESH = "$s='[DllImport(\"wininet.dll\")]public static extern bool InternetSetOption(IntPtr h,int o,IntPtr b,int l);';$t=Add-Type -MemberDefinition $s -Name W -Namespace N -PassThru;$t::InternetSetOption([IntPtr]::Zero,39,[IntPtr]::Zero,0)|Out-Null;$t::InternetSetOption([IntPtr]::Zero,37,[IntPtr]::Zero,0)|Out-Null";
+const inetRefresh = () => { try { execFile('powershell', ['-NoProfile', '-NonInteractive', '-Command', INET_REFRESH], { windowsHide: true, timeout: 15000 }, () => {}); } catch {} };
+function proxyOn() {
+  const add = (n, t, v) => execFileSync('reg', ['add', REG, '/v', n, '/t', t, '/d', v, '/f'], { windowsHide: true });
+  add('ProxyServer', 'REG_SZ', '127.0.0.1:' + PROXY_PORT); add('ProxyOverride', 'REG_SZ', '<local>;localhost;127.*;10.*;192.168.*;172.16.*;172.17.*;172.18.*;172.19.*;172.2*;172.30.*;172.31.*'); add('ProxyEnable', 'REG_DWORD', '1');
+  proxyActive = true; inetRefresh(); log('app', 'системный прокси включён: 127.0.0.1:' + PROXY_PORT);
+}
+function proxyOff() { if (!proxyActive) return; proxyOffSync(); proxyActive = false; inetRefresh(); log('app', 'системный прокси выключен'); }
 const pidFile = () => path.join(app.getPath('userData'), 'pids.json');
-const savePids = () => { try { fs.writeFileSync(pidFile(), JSON.stringify([xray && xray.pid, sb && sb.pid].filter(Boolean))); } catch {} };
+const savePids = () => { try { fs.writeFileSync(pidFile(), JSON.stringify([xray && xray.pid, sb && sb.pid, ...pre.map(p => p.pid)].filter(Boolean))); } catch {} };
 function killOrphans() { // процессы прошлого запуска, если приложение упало
   try {
     for (const pid of JSON.parse(fs.readFileSync(pidFile(), 'utf8'))) {
@@ -537,22 +547,73 @@ function happAdapter() {
     return m ? m.trim().split(/\s{2,}/).pop() : '';
   } catch { return ''; }
 }
-async function startSingbox(level) {
-  const RT = routeRules();
+function preNorm(o) {
+  const out = [], seen = new Set();
+  for (const r of (o && o.rules) || []) {
+    const kind = r.kind === 'app' ? 'app' : 'domain', server = String(r.server || '').trim();
+    let value = kind === 'app' ? path.basename(String(r.value || '')).trim() : normDomain(r.value);
+    if (!server) continue;
+    if (kind === 'app' ? !/^[^\\/:*?"<>|]+\.exe$/i.test(value) : !(/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(value) && value.includes('.'))) continue;
+    const key = kind + '|' + value.toLowerCase(); if (seen.has(key)) continue; seen.add(key);
+    out.push({ kind, value, server, ...(kind === 'app' && r.path ? { path: String(r.path).slice(0, 260) } : {}) });
+  }
+  return { rules: out };
+}
+const preFile = () => path.join(app.getPath('userData'), 'prerouting.json');
+const preLoad = () => { try { return preNorm(JSON.parse(fs.readFileSync(preFile(), 'utf8'))); } catch { return { rules: [] }; } };
+function preSave(o) { const r = preNorm(o); fs.writeFileSync(preFile(), JSON.stringify(r, null, 2)); log('app', `предварительная маршрутизация: правил ${r.rules.length}`); return r; }
+function prePlan() { // правила группируются по серверу: каждому — свой Xray на своём порту и свой socks-выход sing-box
+  const groups = new Map();
+  for (const r of preLoad().rules) { if (!groups.has(r.server)) groups.set(r.server, []); groups.get(r.server).push(r); }
+  const targets = [], outbounds = [], rules = [];
+  [...groups.entries()].forEach(([server, rs], i) => {
+    const port = PRE_PORT + i, tag = 'pre-' + i;
+    targets.push({ server, port, tag }); outbounds.push({ type: 'socks', tag, server: '127.0.0.1', server_port: port, version: '5' });
+    const apps = [...new Set(rs.filter(r => r.kind === 'app').flatMap(r => [r.value, r.value.toLowerCase()]))], doms = rs.filter(r => r.kind === 'domain').map(r => r.value);
+    if (apps.length) rules.push({ process_name: apps, outbound: tag });
+    if (doms.length) rules.push({ domain_suffix: doms, outbound: tag });
+  });
+  return { targets, outbounds, rules };
+}
+async function startPre(plan, level) { // если сервер правила не отвечает, порт остаётся закрытым — трафик правила блокируется (как Kill Switch)
+  const bad = [];
+  await Promise.all(plan.targets.map(async t => {
+    const e = (entries || []).find(x => x.tag === t.server);
+    if (!e) { log('pre', `сервер «${t.server}» не найден в подписке — трафик его правил блокируется`); bad.push(t.server); return; }
+    try {
+      const ips = await resolveAll(hostsOf(e), true);
+      const f = path.join(app.getPath('userData'), `xray-pre-${t.port - PRE_PORT}.json`);
+      fs.writeFileSync(f, JSON.stringify(xrayConfig(e, level, ips, t.port), null, 2));
+      if (!(await freePort(t.port))) throw new Error('порт ' + t.port + ' занят');
+      const p = run('xray-pre', 'xray.exe', ['run', '-c', f], { XRAY_LOCATION_ASSET: binDir() });
+      pre.push(p); savePids();
+      p.on('exit', (code) => { log('pre', `Xray для «${t.server}» завершился code=${code}`); pre = pre.filter(x => x !== p); });
+      let up = false;
+      for (let i = 0; i < 40 && !up; i++) { await sleep(250); if (p.exitCode !== null) throw new Error(p.failed || p.tail() || 'Xray остановился'); up = await portOpen(t.port, 300); }
+      if (!up) throw new Error('Xray не открыл порт');
+      const r = await socksProbe(7000, t.port); log('pre', `«${t.server}»: канал работает, ${r.ms} мс ✓`);
+    } catch (err) { log('pre', `«${t.server}»: ${err.message} — трафик его правил блокируется`); bad.push(t.server); }
+  }));
+  return bad;
+}
+async function startSingbox(level, mode) {
+  const RT = routeRules(), PP = prePlan();
   // адреса серверов исключаем из TUN: пинг из приложения идёт напрямую и показывает реальную задержку, а не локальный ответ TUN
   const ipm = await resolveAll([...new Set((entries || []).flatMap(hostsOf))], true).catch(() => ({}));
   const excl = [...new Set(Object.values(ipm || {}).filter(v => net.isIPv4(v)).map(v => v + '/32'))];
   const cfg = {
     log: { level: level === 'debug' ? 'debug' : level === 'info' ? 'info' : 'warn', timestamp: false },
     dns: { servers: [{ type: 'tcp', tag: 'dns-remote', server: '1.1.1.1', detour: 'xray' }], final: 'dns-remote', strategy: 'ipv4_only' },
-    inbounds: [{ type: 'tun', tag: 'tun-in', address: ['172.19.0.1/30'], auto_route: true, strict_route: true, stack: 'mixed', ...(excl.length ? { route_exclude_address: excl } : {}) }],
-    outbounds: [{ type: 'socks', tag: 'xray', server: '127.0.0.1', server_port: XRAY_PORT, version: '5' }, { type: 'direct', tag: 'direct' }],
+    inbounds: mode === 'proxy' ? [{ type: 'mixed', tag: 'mixed-in', listen: '127.0.0.1', listen_port: PROXY_PORT }]
+      : [{ type: 'tun', tag: 'tun-in', address: ['172.19.0.1/30'], auto_route: true, strict_route: true, stack: 'mixed', ...(excl.length ? { route_exclude_address: excl } : {}) }],
+    outbounds: [{ type: 'socks', tag: 'xray', server: '127.0.0.1', server_port: XRAY_PORT, version: '5' }, { type: 'direct', tag: 'direct' }, ...PP.outbounds],
     route: {
       rules: [
         { action: 'sniff' },
         { process_name: ['xray.exe'], outbound: 'direct' },   // трафик самого Xray к серверам — мимо TUN
         { protocol: 'dns', action: 'hijack-dns' },
         { ip_is_private: true, outbound: 'direct' },
+        ...PP.rules,          // предварительная маршрутизация — выше обычной, работает всегда
         ...RT.rules,
       ],
       final: RT.final, auto_detect_interface: true, find_process: true,
@@ -570,14 +631,15 @@ async function startSingbox(level) {
     await sleep(400);
     if (sb !== p) throw new Error('sing-box остановился: ' + (p.failed || p.tail() || 'нет вывода'));
   }
-  log('sing-box', 'TUN запущен'); logAdapters('tun');
+  log('sing-box', mode === 'proxy' ? 'прокси-вход запущен' : 'TUN запущен'); if (mode !== 'proxy') logAdapters('tun');
 }
 async function stopAll(reason) {
   if (/упал/.test(reason || '')) ksOn(); else if (reason !== 'ошибка' && reason !== 'ошибка переключения') ksOff();
   stopping = true;
-  for (const p of [sb, xray]) { if (p) { try { p.removeAllListeners('exit'); p.kill(); } catch {} } }
+  proxyOff();
+  for (const p of [sb, xray, ...pre]) { if (p) { try { p.removeAllListeners('exit'); p.kill(); } catch {} } }
   const had = !!(sb || xray);
-  sb = null; xray = null; savePids();
+  sb = null; xray = null; pre = []; savePids();
   if (had) log('app', 'остановлено' + (reason ? ': ' + reason : ''));
   await sleep(150); stopping = false; rpcSince = 0; rpcUpdate();
 }
@@ -602,8 +664,11 @@ async function connect(o = {}) {
     curTag = entry.tag;
     await startXray(entry, lastLevel);
     await verifyTunnel(entry);
-    await startSingbox(lastLevel);
-    log('app', 'подключено'); rpcSince = Math.floor(Date.now() / 1000); rpcUpdate(); afterConnectTest().catch(() => {}); setTimeout(refreshBg, 6000);
+    const mode = setLoad().mode === 'proxy' ? 'proxy' : 'tun', plan = prePlan();
+    if (plan.targets.length) { const bad = await startPre(plan, lastLevel); if (bad.length) lastWarn = 'Предварительная маршрутизация: сервер недоступен (' + bad.map(b => b.replace(/[\u{1F1E6}-\u{1F1FF}]{2}\s*/gu, '')).join(', ') + ') — трафик этих правил заблокирован.'; }
+    await startSingbox(lastLevel, mode);
+    if (mode === 'proxy') proxyOn();
+    log('app', 'подключено (' + (mode === 'proxy' ? 'системный прокси' : 'TUN') + ')'); rpcSince = Math.floor(Date.now() / 1000); rpcUpdate(); afterConnectTest().catch(() => {}); setTimeout(refreshBg, 6000);
     return true;
   } catch (e) { log('app', 'ОШИБКА подключения: ' + e.message); await stopAll('ошибка'); throw e; }
 }
@@ -753,6 +818,10 @@ function ksOff(force) {
   ksActive = false; try { fs.unlinkSync(ksMark()); } catch {}
   log('app', 'Kill Switch: блокировка снята');
 }
+h('preget', async () => preLoad());
+h('preset', async o => preSave(o || {}));
+h('modeget', async () => ({ mode: setLoad().mode === 'proxy' ? 'proxy' : 'tun' }));
+h('modeset', async m => { const s = setLoad(); s.mode = m === 'proxy' ? 'proxy' : 'tun'; setSave(s); log('app', 'режим работы: ' + s.mode); return { mode: s.mode }; });
 h('ksget', async () => ({ on: !!setLoad().ks, active: ksActive }));
 h('ksset', async v => { const s = setLoad(); s.ks = !!v; setSave(s); if (!v) ksOff(); return { on: !!v }; });
 
@@ -881,7 +950,7 @@ function initUpdater() {
 }
 h('updinfo', async () => ({ ...upd, current: app.getVersion(), enabled: !!updater }));
 h('updcheck', async () => { if (updater) { try { await updater.checkForUpdates(); } catch {} } return { ...upd, current: app.getVersion(), enabled: !!updater }; });
-h('updinstall', async () => { quitting = true; if (updater && upd.state === 'ready') { try { if (sb) sb.kill(); if (xray) xray.kill(); } catch {} updater.quitAndInstall(true, true); } return {}; });
+h('updinstall', async () => { quitting = true; if (updater && upd.state === 'ready') { try { proxyOff(); for (const p of [sb, xray, ...pre]) if (p) p.kill(); } catch {} updater.quitAndInstall(true, true); } return {}; });
 
 app.whenReady().then(() => {
   load(); loadDisk(); proxyOffSync(); killOrphans();
@@ -896,5 +965,5 @@ app.whenReady().then(() => {
   initTray();
   initUpdater();
 });
-app.on('before-quit', () => { quitting = true; try { ksOff(); } catch {} try { if (rpcSock) rpcSock.destroy(); } catch {} for (const p of [sb, xray]) { try { if (p) p.kill(); } catch {} } });
+app.on('before-quit', () => { quitting = true; try { proxyOff(); } catch {} try { ksOff(); } catch {} try { if (rpcSock) rpcSock.destroy(); } catch {} for (const p of [sb, xray, ...pre]) { try { if (p) p.kill(); } catch {} } });
 app.on('window-all-closed', () => {});
