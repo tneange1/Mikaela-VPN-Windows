@@ -582,10 +582,11 @@ async function startPre(plan, level) { // если сервер правила �
       pre.push(p); savePids();
       p.on('exit', (code) => { log('pre', `Xray для «${t.server}» завершился code=${code}`); pre = pre.filter(x => x !== p); });
       let up = false;
-      for (let i = 0; i < 40 && !up; i++) { await sleep(250); if (p.exitCode !== null) throw new Error(p.failed || p.tail() || 'Xray остановился'); up = await portOpen(t.port, 300); }
+      for (let i = 0; i < 120 && !up; i++) { await sleep(250); if (p.exitCode !== null) throw new Error(p.failed || p.tail() || 'Xray остановился'); up = await portOpen(t.port, 300); }
       if (!up) throw new Error('Xray не открыл порт');
-      const r = await socksProbe(7000, t.port); log('pre', `«${t.server}»: канал работает, ${r.ms} мс ✓`);
-    } catch (err) { log('pre', `«${t.server}»: ${err.message} — трафик его правил блокируется`); bad.push(t.server); }
+      // проверка канала только для журнала и не блокирует подключение: если сервер реально недоступен, трафик правила и так не пройдёт
+      socksProbe(15000, t.port).then(r => log('pre', `«${t.server}»: канал работает, ${r.ms} мс ✓`), e => log('pre', `«${t.server}»: проверочный запрос не прошёл (${e.message}), Xray запущен, трафик правила идёт через этот сервер`));
+    } catch (err) { log('pre', `«${t.server}»: ${err.message} — трафик его правил блокируется`); bad.push(t.server + (err.message ? ': ' + String(err.message).split('\n').pop().slice(0, 80) : '')); }
   }));
   return bad;
 }
@@ -658,7 +659,7 @@ async function connect(o = {}) {
     await startXray(entry, lastLevel);
     await verifyTunnel(entry);
     const mode = setLoad().mode === 'proxy' ? 'proxy' : 'tun', plan = prePlan();
-    if (plan.targets.length) { const bad = await startPre(plan, lastLevel); if (bad.length) lastWarn = 'Предварительная маршрутизация: сервер недоступен (' + bad.map(b => b.replace(/[\u{1F1E6}-\u{1F1FF}]{2}\s*/gu, '')).join(', ') + ') — трафик этих правил заблокирован.'; }
+    if (plan.targets.length) { const bad = await startPre(plan, lastLevel); if (bad.length) lastWarn = 'Маршрутизация на сервер: не удалось запустить канал (' + bad.map(b => b.replace(/[\u{1F1E6}-\u{1F1FF}]{2}\s*/gu, '')).join(', ') + '). Трафик этих правил заблокирован.'; }
     await startSingbox(lastLevel, mode);
     if (mode === 'proxy') proxyOn();
     log('app', 'подключено (' + (mode === 'proxy' ? 'системный прокси' : 'TUN') + ')'); rpcSince = Math.floor(Date.now() / 1000); rpcUpdate(); afterConnectTest().catch(() => {}); setTimeout(refreshBg, 6000);
