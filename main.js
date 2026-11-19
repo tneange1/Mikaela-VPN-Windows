@@ -547,32 +547,25 @@ function happAdapter() {
     return m ? m.trim().split(/\s{2,}/).pop() : '';
   } catch { return ''; }
 }
-function preNorm(o) {
-  const out = [], seen = new Set();
-  for (const r of (o && o.rules) || []) {
-    const kind = r.kind === 'app' ? 'app' : 'domain', server = String(r.server || '').trim();
-    let value = kind === 'app' ? path.basename(String(r.value || '')).trim() : normDomain(r.value);
-    if (!server) continue;
-    if (kind === 'app' ? !/^[^\\/:*?"<>|]+\.exe$/i.test(value) : !(/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(value) && value.includes('.'))) continue;
-    const key = kind + '|' + value.toLowerCase(); if (seen.has(key)) continue; seen.add(key);
-    out.push({ kind, value, server, ...(kind === 'app' && r.path ? { path: String(r.path).slice(0, 260) } : {}) });
+function prePlan() { // правила «на сервер»: по одному Xray на каждый нужный сервер; несколько серверов у правила — группа urltest (живой с лучшим пингом)
+  const rs = routeLoad().rules.filter(r => r.action === 'server' && r.servers.length);
+  const ports = new Map(), targets = [], outbounds = [], rules = [], groups = new Map();
+  const sock = server => { if (!ports.has(server)) { const i = ports.size; ports.set(server, i); targets.push({ server, port: PRE_PORT + i }); outbounds.push({ type: 'socks', tag: 'pre-' + i, server: '127.0.0.1', server_port: PRE_PORT + i, version: '5' }); } return 'pre-' + ports.get(server); };
+  for (const r of rs) {
+    const key = r.servers.join('|');
+    if (!groups.has(key)) {
+      const tags = r.servers.map(sock);
+      let tag = tags[0];
+      if (tags.length > 1) { tag = 'grp-' + groups.size; outbounds.push({ type: 'urltest', tag, outbounds: tags, url: 'https://www.gstatic.com/generate_204', interval: '1m', tolerance: 50, interrupt_exist_connections: false }); }
+      groups.set(key, { tag, apps: [], doms: [] });
+    }
+    const g = groups.get(key);
+    if (r.kind === 'app') g.apps.push(r.value, r.value.toLowerCase()); else g.doms.push(domSuffix(r.value));
   }
-  return { rules: out };
-}
-const preFile = () => path.join(app.getPath('userData'), 'prerouting.json');
-const preLoad = () => { try { return preNorm(JSON.parse(fs.readFileSync(preFile(), 'utf8'))); } catch { return { rules: [] }; } };
-function preSave(o) { const r = preNorm(o); fs.writeFileSync(preFile(), JSON.stringify(r, null, 2)); log('app', `предварительная маршрутизация: правил ${r.rules.length}`); return r; }
-function prePlan() { // правила группируются по серверу: каждому — свой Xray на своём порту и свой socks-выход sing-box
-  const groups = new Map();
-  for (const r of preLoad().rules) { if (!groups.has(r.server)) groups.set(r.server, []); groups.get(r.server).push(r); }
-  const targets = [], outbounds = [], rules = [];
-  [...groups.entries()].forEach(([server, rs], i) => {
-    const port = PRE_PORT + i, tag = 'pre-' + i;
-    targets.push({ server, port, tag }); outbounds.push({ type: 'socks', tag, server: '127.0.0.1', server_port: port, version: '5' });
-    const apps = [...new Set(rs.filter(r => r.kind === 'app').flatMap(r => [r.value, r.value.toLowerCase()]))], doms = rs.filter(r => r.kind === 'domain').map(r => r.value);
-    if (apps.length) rules.push({ process_name: apps, outbound: tag });
-    if (doms.length) rules.push({ domain_suffix: doms, outbound: tag });
-  });
+  for (const g of groups.values()) {
+    if (g.apps.length) rules.push({ process_name: [...new Set(g.apps)], outbound: g.tag });
+    if (g.doms.length) rules.push({ domain_suffix: [...new Set(g.doms)], outbound: g.tag });
+  }
   return { targets, outbounds, rules };
 }
 async function startPre(plan, level) { // если сервер правила не отвечает, порт остаётся закрытым — трафик правила блокируется (как Kill Switch)
@@ -818,8 +811,6 @@ function ksOff(force) {
   ksActive = false; try { fs.unlinkSync(ksMark()); } catch {}
   log('app', 'Kill Switch: блокировка снята');
 }
-h('preget', async () => preLoad());
-h('preset', async o => preSave(o || {}));
 h('modeget', async () => ({ mode: setLoad().mode === 'proxy' ? 'proxy' : 'tun' }));
 h('modeset', async m => { const s = setLoad(); s.mode = m === 'proxy' ? 'proxy' : 'tun'; setSave(s); log('app', 'режим работы: ' + s.mode); return { mode: s.mode }; });
 h('ksget', async () => ({ on: !!setLoad().ks, active: ksActive }));
@@ -838,31 +829,52 @@ async function authOpts() {
 }
 h('authopts', authOpts);
 
-// ---- маршрутизация: приложения и домены ----
+// ---- маршрутизация: правила для приложений и доменов (напрямую или на выбранные серверы) ----
 const routeFile = () => path.join(app.getPath('userData'), 'routing.json');
-const ROUTE_DEF = { mode: 'bypass', apps: [], domains: [] };
-function routeLoad() {
-  try { const j = JSON.parse(fs.readFileSync(routeFile(), 'utf8')); return { mode: j.mode === 'only' ? 'only' : 'bypass', apps: Array.isArray(j.apps) ? j.apps : [], domains: Array.isArray(j.domains) ? j.domains : [] }; }
-  catch { return { ...ROUTE_DEF, apps: [], domains: [] }; }
+const toAscii = v => { try { return require('url').domainToASCII(v) || v; } catch { return v; } };
+// значение: «example.com» (домен с поддоменами) или «.ru» (доменная зона)
+function normDomain(s) {
+  let v = String(s || '').trim().toLowerCase().replace(/^[a-z]+:\/\//, '').split(/[\/:?#]/)[0].replace(/^\*+/, '');
+  const zone = v.startsWith('.'); v = v.replace(/^\.+/, '').replace(/\.+$/, '');
+  const a = toAscii(v);
+  if (!v || !/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(a) || (!zone && !a.includes('.'))) return '';
+  return (zone ? '.' : '') + v;
 }
-const normDomain = s => String(s || '').trim().toLowerCase().replace(/^[a-z]+:\/\//, '').replace(/^\*?\./, '').split(/[\/:?#]/)[0];
+const domSuffix = v => toAscii(v.replace(/^\./, ''));
+function routeNorm(o) {
+  const out = [], seen = new Set();
+  for (const r of (o && o.rules) || []) {
+    const kind = r.kind === 'app' ? 'app' : 'domain';
+    const value = kind === 'app' ? path.basename(String(r.value || r.name || r.path || '')).trim() : normDomain(r.value);
+    if (!value || (kind === 'app' && !/^[^\\/:*?"<>|]+\.exe$/i.test(value))) continue;
+    const key = kind + '|' + value.toLowerCase(); if (seen.has(key)) continue; seen.add(key);
+    const servers = r.action === 'server' ? [...new Set((r.servers || []).map(String).filter(Boolean))] : [];
+    out.push({ kind, value, action: servers.length ? 'server' : 'direct', servers, ...(kind === 'app' && r.path ? { path: String(r.path).slice(0, 260) } : {}) });
+  }
+  return { rules: out };
+}
+function routeLoad() {
+  let j = {}; try { j = JSON.parse(fs.readFileSync(routeFile(), 'utf8')); } catch {}
+  if (Array.isArray(j.rules)) return routeNorm(j);
+  // миграция со старых версий: списки «напрямую» и отдельная предварительная маршрутизация
+  const rules = [];
+  for (const a of j.apps || []) rules.push({ kind: 'app', value: a.name, path: a.path, action: 'direct' });
+  for (const d of j.domains || []) rules.push({ kind: 'domain', value: d, action: 'direct' });
+  try { for (const r of JSON.parse(fs.readFileSync(path.join(app.getPath('userData'), 'prerouting.json'), 'utf8')).rules || []) rules.push({ kind: r.kind, value: r.value, path: r.path, action: 'server', servers: [r.server] }); } catch {}
+  return routeNorm({ rules });
+}
 function routeSave(o) {
-  const apps = [], seen = new Set();
-  for (const a of (o.apps || [])) { const name = path.basename(String(a.name || a.path || '')).trim(); if (!/^[^\\/:*?"<>|]+\.exe$/i.test(name) || seen.has(name.toLowerCase())) continue; seen.add(name.toLowerCase()); apps.push({ name, path: a.path ? String(a.path) : '' }); }
-  const domains = [...new Set((o.domains || []).map(normDomain).filter(x => /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(x) && x.includes('.')))];
-  const r = { mode: o.mode === 'only' ? 'only' : 'bypass', apps, domains };
-  fs.writeFileSync(routeFile(), JSON.stringify(r, null, 2)); log('app', `маршрутизация: режим ${r.mode}, приложений ${apps.length}, доменов ${domains.length}`);
+  const r = routeNorm(o); fs.writeFileSync(routeFile(), JSON.stringify(r, null, 2));
+  log('app', `маршрутизация: правил ${r.rules.length} (на серверы: ${r.rules.filter(x => x.action === 'server').length})`);
   return r;
 }
-function routeRules() {
-  const r = routeLoad(), rules = [];
-  const target = r.mode === 'only' ? 'xray' : 'direct';
-  const names = [...new Set(r.apps.flatMap(a => [a.name, a.name.toLowerCase()]))];
-  if (names.length) rules.push({ process_name: names, outbound: target });
-  if (r.domains.length) rules.push({ domain_suffix: r.domains, outbound: target });
-  const only = r.mode === 'only' && rules.length > 0;
-  if (r.mode === 'only' && !rules.length) log('app', 'режим «только список» пуст — используется обычная маршрутизация');
-  return { rules, final: only ? 'direct' : 'xray' };
+function routeRules() { // «напрямую»: идёт мимо туннеля, остальное — через VPN
+  const d = routeLoad().rules.filter(r => r.action === 'direct'), rules = [];
+  const names = [...new Set(d.filter(r => r.kind === 'app').flatMap(r => [r.value, r.value.toLowerCase()]))];
+  const doms = [...new Set(d.filter(r => r.kind === 'domain').map(r => domSuffix(r.value)))];
+  if (names.length) rules.push({ process_name: names, outbound: 'direct' });
+  if (doms.length) rules.push({ domain_suffix: doms, outbound: 'direct' });
+  return { rules, final: 'xray' };
 }
 h('routeget', async () => routeLoad());
 h('routeset', async o => routeSave(o || {}));
@@ -945,7 +957,7 @@ function initUpdater() {
     updater.on('update-downloaded', i => { upd = { state: 'ready', version: i.version, percent: 100, error: '' }; });
     updater.on('error', e => { upd.state = 'error'; upd.error = String(e && e.message || e).slice(0, 200); });
     const chk = () => updater.checkForUpdates().catch(() => {});
-    setTimeout(chk, 8000); setInterval(chk, 180000);
+    setTimeout(chk, 8000); setInterval(chk, 60000);  // без кнопок и окон: как только в GitHub появляется готовый релиз, он скачивается и предлагается установить
   } catch (e) { upd.state = 'off'; log('update', 'не запущено: ' + e.message); }
 }
 h('updinfo', async () => ({ ...upd, current: app.getVersion(), enabled: !!updater }));

@@ -139,7 +139,6 @@ nav button.act{color:var(--tx)}
     <p class="meta" id="subHead">—</p>
     <p class="meta" id="srvCnt" style="margin-top:2px"></p>
     <button class="btn" id="pingAll"><span data-ic="ping"></span><span id="pingLbl">Тест пинга</span></button>
-    <button class="btn" id="reload"><span data-ic="refresh"></span>Обновить</button>
     <div class="list" id="list"></div>
     <div id="srvErr" class="er"></div>
   </section>
@@ -160,17 +159,13 @@ nav button.act{color:var(--tx)}
       <button class="btn between" data-sp="sAdv"><span>Дополнительные настройки</span><span class="t2">›</span></button>
       <button class="btn between" data-sp="sRt"><span>Маршрутизация</span><span class="t2">›</span></button>
       <div class="sec" style="margin-top:34px"><div class="hdr">Тема<select id="themeSel" class="s"><option value="system">Как в системе</option><option value="light">Белая</option><option value="gray">Серая</option><option value="dark">Чёрная</option></select></div></div>
-      <div class="sec"><div class="hdr">Автообновление серверов<select id="autoSel" class="s"><option value="60000">каждую минуту</option><option value="300000">каждые 5 минут</option><option value="3600000">раз в час</option></select></div>
-        <div class="meta">Новые хосты из панели появятся в списке без перезапуска</div></div>
-      <div class="sec"><div class="hdr">Версия <span id="verTxt" class="meta" style="margin:0"></span></div><div class="meta" id="updHint"></div><button class="btn c sm" id="guideBtn" style="margin-top:12px">Показать инструкцию</button></div>
+      <div class="sec"><button class="btn c sm" id="guideBtn" style="margin-top:12px">Показать инструкцию</button></div>
       <div class="sec"><div class="hdr" id="acc">—</div><button class="btn c" id="out">Выйти из аккаунта</button></div>
     </div>
     <div id="sAdv" class="hide">
       <button class="bk" data-sp="sMain">‹ Назад</button>
       <h1 class="h1">Дополнительные настройки</h1>
       <div class="sec"><div class="hdr">Режим работы<select id="modeSel" class="s"><option value="tun">TUN</option><option value="proxy">Системный прокси</option></select></div><div class="meta" id="modeHint"></div></div>
-      <button class="btn between" data-sp="sPre" style="margin-top:14px"><span>Предварительная маршрутизация</span><span class="t2" id="preC">›</span></button>
-      <div class="meta" style="margin:-4px 0 6px">Домены и приложения, которые всегда идут через выбранный сервер</div>
       <div class="sec"><div class="hdr">Автозапуск с Windows<button class="btn sm" id="asSw" style="width:auto;padding:6px 14px"></button></div>
         <div class="hdr" style="margin-top:16px">Запускать свёрнутым<button class="btn sm" id="amSw" style="width:auto;padding:6px 14px"></button></div>
         <div class="hdr" style="margin-top:16px">Автоподключение<button class="btn sm" id="acSw" style="width:auto;padding:6px 14px"></button></div>
@@ -179,20 +174,11 @@ nav button.act{color:var(--tx)}
         <div class="meta">Блокировка интернета без VPN: если соединение неожиданно оборвётся, весь трафик будет заблокирован, пока вы не подключитесь снова или не выключите функцию. Снимается при выходе из приложения.</div><div class="meta" id="ksHint"></div></div>
       <div class="sec"><div class="hdr">Показывать в Discord<button class="btn sm" id="rpcSw" style="width:auto;padding:6px 14px"></button></div><div class="meta" id="rpcHint"></div></div>
     </div>
-    <div id="sPre" class="hide">
-      <button class="bk" data-sp="sAdv">‹ Назад</button>
-      <h1 class="h1">Предварительная маршрутизация</h1>
-      <p class="sub" style="display:block">Трафик по этим правилам идёт на выбранный сервер всегда, независимо от обычной маршрутизации. Если сервер не отвечает, соединение блокируется — как в Kill Switch.</p>
-      <div class="rows" id="preRows"></div>
-      <button class="btn" id="preAdd" style="margin-top:14px">Добавить правило</button>
-      <div class="meta" id="preHint"></div>
-    </div>
     <div id="sRt" class="hide">
       <button class="bk" data-sp="sMain">‹ Назад</button>
       <h1 class="h1">Маршрутизация</h1>
-      <p class="sub" style="display:block">Какие приложения и сайты идут через VPN</p>
-      <div class="sec"><div class="hdr">Режим<select id="rtMode" class="s"><option value="bypass">Всё через VPN, кроме списка</option><option value="only">Только список через VPN</option></select></div><div class="meta" id="rtHint"></div></div>
-      <button class="btn between" data-sp="sRtA" style="margin-top:26px"><span>Маршрутизация приложений</span><span class="t2" id="rtAc">›</span></button>
+      <p class="sub" style="display:block">Для каждого приложения и домена можно выбрать: идти напрямую, минуя VPN, или всегда через выбранные серверы. Если такой сервер не отвечает, соединение блокируется.</p>
+      <button class="btn between" data-sp="sRtA" style="margin-top:20px"><span>Маршрутизация приложений</span><span class="t2" id="rtAc">›</span></button>
       <button class="btn between" data-sp="sRtD"><span>Маршрутизация доменов</span><span class="t2" id="rtDc">›</span></button>
     </div>
     <div id="sRtA" class="hide">
@@ -200,12 +186,14 @@ nav button.act{color:var(--tx)}
       <h1 class="h1">Приложения</h1>
       <div class="rows" id="rtApps"></div>
       <div class="g2"><button class="btn sm" id="rtRun">Из запущенных</button><button class="btn sm" id="rtPick">Выбрать файл…</button></div>
+      <div class="meta">Новое приложение идёт напрямую. Шестерёнка — изменить: напрямую или на сервер.</div>
     </div>
     <div id="sRtD" class="hide">
       <button class="bk" data-sp="sRt">‹ Назад</button>
       <h1 class="h1">Домены</h1>
       <div class="rows" id="rtDoms"></div>
-      <div class="g2" style="grid-template-columns:1fr auto"><input id="rtDom" placeholder="example.com" style="margin:0"><button class="btn sm" id="rtAdd" style="width:auto;padding:0 18px">Добавить</button></div>
+      <div class="g2" style="grid-template-columns:1fr auto"><input id="rtDom" placeholder="example.com или .ru .su .рф" style="margin:0"><button class="btn sm" id="rtAdd" style="width:auto;padding:0 18px">Добавить</button></div>
+      <div class="meta">Домен вида example.com включает поддомены. Доменная зона начинается с точки: .ru, .su, .рф. Можно добавить несколько через пробел или запятую. Шестерёнка — изменить: напрямую или на сервер.</div>
     </div>
   </section>
   </main>
@@ -243,7 +231,7 @@ document.querySelectorAll('[data-logo]').forEach(e=>e.innerHTML=MARK);
 const $=id=>document.getElementById(id);
 const ls={get:(k,d)=>{try{return localStorage.getItem(k)||d}catch{return d}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
 const FIRST=(()=>{try{return localStorage.getItem('theme')===null}catch{return false}})(); // первый запуск: тема ещё не сохранялась
-const S={theme:ls.get('theme','system'),server:ls.get('server',''),list:[],ping:{},sub:null,dev:null,user:null,subs:[],subId:ls.get('subId',''),auto:+ls.get('auto','300000'),rpc:ls.get('rpc','1')==='1',logLevel:ls.get('logLevel','warning'),sig:'',since:0};
+const S={theme:ls.get('theme','system'),server:ls.get('server',''),list:[],ping:{},sub:null,dev:null,user:null,subs:[],subId:ls.get('subId',''),auto:60000,rpc:ls.get('rpc','1')==='1',logLevel:ls.get('logLevel','warning'),sig:'',since:0};
 let autoDone=false,on=false,busy=false,reg=false,tgWait=false,watch=null,loading=false,autoT=null,lastLoad=0;
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const rub=k=>(k/100).toFixed(2)+' ₽';
@@ -331,11 +319,9 @@ document.addEventListener('click',cmHide);document.addEventListener('scroll',cmH
 $('cmSel').onclick=()=>{if(cmTag)pick(cmTag)};
 $('cmPing').onclick=async()=>{const t=cmTag;if(!t)return;S.ping[t]=undefined;renderServers();const r=await vpn.pingMany([t]);if(r.ok)Object.assign(S.ping,r.data);renderServers();renderCur();const v=S.ping[t];toast(parse(t).label+': '+(v==null?'нет данных':v===-2?'UDP (Hysteria)':v<0?'нет ответа':v+' мс'),v>0?'var(--ok)':'var(--er)')};
 let pinging=false;$('pingAll').onclick=async()=>{if(pinging)return;pinging=true;$('pingLbl').textContent='Проверка пинга…';S.list.forEach(s=>S.ping[s.tag]=undefined);renderServers();
-  for(const s of S.list){if(!pinging)break;const r=await vpn.pingMany([s.tag]);if(r.ok)Object.assign(S.ping,r.data);else S.ping[s.tag]=-1;renderServers();renderCur()}
+  await Promise.all(S.list.map(async s=>{const r=await vpn.pingMany([s.tag]);S.ping[s.tag]=r.ok&&r.data&&r.data[s.tag]!=null?r.data[s.tag]:-1;renderServers();renderCur()}));
   pinging=false;$('pingLbl').textContent='Тест пинга';renderServers();renderCur()};
-$('reload').onclick=()=>loadServers(true);
 function setAuto(){clearInterval(autoT);autoT=setInterval(()=>loadServers(true,true),S.auto)}
-$('autoSel').value=String(S.auto);$('autoSel').onchange=()=>{S.auto=+$('autoSel').value;ls.set('auto',S.auto);setAuto();toast('Автообновление изменено')};
 window.addEventListener('focus',()=>{if(!$('app').classList.contains('hide')&&Date.now()-lastLoad>30000)loadServers(true,true)});
 
 /* устройства */
@@ -443,8 +429,7 @@ $('rpcSw').onclick=async()=>{S.rpc=!S.rpc;ls.set('rpc',S.rpc?'1':'0');await vpn.
 init();
 
 /* обновление клиента */
-async function renderUpd(){const r=await vpn.updInfo(),u=r.data||{};$('verTxt').textContent='v'+(u.current||'');
- $('updHint').textContent=!u.enabled?'Автообновление работает в установленной версии':({idle:'Проверка обновлений включена',checking:'Проверяю…',latest:'Установлена последняя версия',downloading:'Скачиваю v'+u.version+' — '+u.percent+'%',ready:'Версия v'+u.version+' загружена',error:'Не удалось проверить: '+u.error,off:''})[u.state]||'';
+async function renderUpd(){const r=await vpn.updInfo(),u=r.data||{};
  const dl=u.state==='downloading',rd=u.state==='ready';$('updOv').classList.toggle('hide',!(dl||rd));
  if(dl||rd){$('uoT').textContent='Доступно обновление v'+u.version;$('uoP').textContent=rd?'Для продолжения работы нужно обновить приложение. Оно перезапустится автоматически.':'Загружаю новую версию…';
   $('uoPr').classList.toggle('hide',!dl);$('uoBar').style.width=(u.percent||0)+'%';$('uoPc').textContent=(u.percent||0)+'%';$('uoB').classList.toggle('hide',!rd)}}
@@ -473,25 +458,37 @@ function applyAO(){const o=AO;const e=o.email;['tabs','em','pwf','go','fgW'].for
    const r=await vpn.tg();tgWait=false;x.textContent=t;r.ok?enter(r.data):say(r.error)}
   else{say('Откроется окно кабинета — выберите там способ входа',true);const r=await vpn.webLogin(k);r.ok?enter(r.data):say(r.error)}})}
 /* маршрутизация */
-let RT={mode:'bypass',apps:[],domains:[]};
+let RT={rules:[]};
+const GEAR='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+const srvLabel=t=>{const x=S.list.find(v=>v.tag===t);return parse(t).label+(x?'':' (нет в списке)')};
+const actTxt=r=>r.action==='server'?'→ '+r.servers.map(srvLabel).join(', '):'Напрямую (мимо VPN)';
 async function loadRoute(){const r=await vpn.routeGet();if(r.ok)RT=r.data;renderRoute()}
-function renderRoute(){$('rtMode').value=RT.mode;$('rtAc').textContent=(RT.apps.length||'')+' ›';$('rtDc').textContent=(RT.domains.length||'')+' ›';
- $('rtApps').innerHTML=RT.apps.length?RT.apps.map((a,i)=>`<div class="rit"><div class="grow" style="min-width:0"><div>${esc(a.name)}</div>${a.path?`<div class="t2">${esc(a.path)}</div>`:''}</div><button data-da="${i}">×</button></div>`).join(''):'<div class="empty">Список пуст</div>';
- $('rtDoms').innerHTML=RT.domains.length?RT.domains.map((x,i)=>`<div class="rit"><div class="grow">${esc(x)}</div><button data-dd="${i}">×</button></div>`).join(''):'<div class="empty">Список пуст</div>';
- $('rtHint').textContent=RT.mode==='only'?'Через VPN пойдут только приложения и домены из списка, остальное — напрямую':'Приложения и домены из списка пойдут напрямую, минуя VPN';
- document.querySelectorAll('[data-da]').forEach(b=>b.onclick=()=>{RT.apps.splice(+b.dataset.da,1);saveRoute()});
- document.querySelectorAll('[data-dd]').forEach(b=>b.onclick=()=>{RT.domains.splice(+b.dataset.dd,1);saveRoute()})}
+function ruleRow(r,i){return `<div class="rit"><div class="grow" style="min-width:0"><div>${esc(r.value)}</div>${r.path?`<div class="t2">${esc(r.path)}</div>`:''}<div class="t2" style="${r.action==='server'?'color:var(--ok)':''}">${esc(actTxt(r))}</div></div><button data-rg="${i}" title="Настроить" style="display:flex;align-items:center">${GEAR}</button><button data-rd="${i}" title="Удалить">×</button></div>`}
+function renderRoute(){const A=RT.rules.map((r,i)=>[r,i]).filter(x=>x[0].kind==='app'),D=RT.rules.map((r,i)=>[r,i]).filter(x=>x[0].kind==='domain');
+ $('rtAc').textContent=(A.length||'')+' ›';$('rtDc').textContent=(D.length||'')+' ›';
+ $('rtApps').innerHTML=A.length?A.map(x=>ruleRow(x[0],x[1])).join(''):'<div class="empty">Список пуст</div>';
+ $('rtDoms').innerHTML=D.length?D.map(x=>ruleRow(x[0],x[1])).join(''):'<div class="empty">Список пуст</div>';
+ document.querySelectorAll('[data-rd]').forEach(b=>b.onclick=()=>{RT.rules.splice(+b.dataset.rd,1);saveRoute()});
+ document.querySelectorAll('[data-rg]').forEach(b=>b.onclick=()=>ruleSheet(+b.dataset.rg))}
+function ruleSheet(i){const r=RT.rules[i];if(!r)return;let act=r.action,sel=new Set(r.servers);
+ const draw=()=>{sheet(`<h2>${esc(r.value)}</h2><div class="t2" style="font-size:13px;margin-bottom:8px">Куда направлять трафик</div>
+  <button class="btn between" id="gD"><span>Напрямую (обход туннеля)</span><span>${act==='direct'?'✓':''}</span></button>
+  <button class="btn between" id="gS"><span>На конкретные серверы</span><span>${act==='server'?'✓':''}</span></button>
+  ${act==='server'?`<div class="t2" style="font-size:13px;margin:10px 0 6px">Выберите один или несколько серверов. Если выбрано несколько, берётся доступный с лучшим пингом.</div><div style="max-height:34vh;overflow:auto">${S.list.map((x,k)=>`<button class="btn between" data-sv="${k}"><span>${esc(parse(x.tag).label)}</span><span>${sel.has(x.tag)?'✓':''}</span></button>`).join('')}</div>`:''}
+  <button class="btn" id="gOk" style="margin-top:12px">Сохранить</button>`);
+  $('gD').onclick=()=>{act='direct';draw()};$('gS').onclick=()=>{act='server';draw()};
+  document.querySelectorAll('[data-sv]').forEach(b=>b.onclick=()=>{const t=S.list[+b.dataset.sv].tag;sel.has(t)?sel.delete(t):sel.add(t);draw()});
+  $('gOk').onclick=()=>{if(act==='server'&&!sel.size)return toast('Выберите хотя бы один сервер','var(--er)');r.action=act;r.servers=act==='server'?[...sel]:[];closeSheet();saveRoute()}};draw()}
 let rtT=null;
-async function saveRoute(){const r=await vpn.routeSet(RT);if(r.ok)RT=r.data;renderRoute();clearTimeout(rtT);
- rtT=setTimeout(async()=>{if(on&&await ask('Маршрутизация изменена. Переподключиться сейчас, чтобы применить?','Переподключить')){busy=true;$('hTxt').textContent='Переподключаю…';await vpn.disconnect();const r=await vpn.connect({server:S.server,logLevel:S.logLevel});if(!r.ok)$('err2').textContent=r.error;busy=false;poll()}else if(on)toast('Применится при следующем подключении','var(--t2)')},600)}
-$('rtMode').onchange=()=>{RT.mode=$('rtMode').value;saveRoute()};
-$('rtAdd').onclick=()=>{const v=$('rtDom').value.trim();if(!v)return;RT.domains.push(v);$('rtDom').value='';saveRoute()};
+async function saveRoute(){const r=await vpn.routeSet(RT);if(r.ok)RT=r.data;renderRoute();clearTimeout(rtT);rtT=setTimeout(()=>reapply('Маршрутизация изменена.'),600)}
+$('rtAdd').onclick=()=>{const n=RT.rules.length;for(const v of $('rtDom').value.split(/[\s,;]+/).filter(Boolean))RT.rules.push({kind:'domain',value:v,action:'direct',servers:[]});$('rtDom').value='';
+ vpn.routeSet(RT).then(r=>{if(r.ok){const added=r.data.rules.length-n;RT=r.data;renderRoute();if(added<=0)toast('Неверный домен или он уже есть в списке','var(--er)');else{clearTimeout(rtT);rtT=setTimeout(()=>reapply('Маршрутизация изменена.'),600)}}})};
 $('rtDom').onkeydown=e=>{if(e.key==='Enter')$('rtAdd').click()};
-$('rtPick').onclick=async()=>{const r=await vpn.pickExe();if(r.ok&&r.data){RT.apps.push(r.data);saveRoute()}};
+$('rtPick').onclick=async()=>{const r=await vpn.pickExe();if(r.ok&&r.data){RT.rules.push({kind:'app',value:r.data.name,path:r.data.path,action:'direct',servers:[]});saveRoute()}};
 $('rtRun').onclick=async()=>{sheet('<h2>Запущенные приложения</h2><div class="t2">Загружаю…</div>');const r=await vpn.procs(),l=(r.ok&&r.data)||[];
  if(!l.length)return sheet('<h2>Запущенные приложения</h2><div class="t2">Окна приложений не найдены. Используйте «Выбрать файл…».</div>');
- sheet(`<h2>Запущенные приложения</h2><div class="t2" style="font-size:13px;margin-bottom:6px">Нажмите, чтобы добавить в список</div>${l.map((x,i)=>{const has=RT.apps.some(a=>a.name.toLowerCase()===x.name.toLowerCase());return `<button class="btn between" data-p="${i}" ${has?'disabled':''}><span style="min-width:0"><div>${esc(x.name)}</div><div class="t2" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.title)}</div></span><span class="t2">${has?'добавлено':'+'}</span></button>`}).join('')}`);
- document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{RT.apps.push(l[+b.dataset.p]);closeSheet();saveRoute()})};
+ sheet(`<h2>Запущенные приложения</h2><div class="t2" style="font-size:13px;margin-bottom:6px">Нажмите, чтобы добавить в список</div>${l.map((x,i)=>{const has=RT.rules.some(a=>a.kind==='app'&&a.value.toLowerCase()===x.name.toLowerCase());return `<button class="btn between" data-p="${i}" ${has?'disabled':''}><span style="min-width:0"><div>${esc(x.name)}</div><div class="t2" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.title)}</div></span><span class="t2">${has?'добавлено':'+'}</span></button>`}).join('')}`);
+ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const x=l[+b.dataset.p];RT.rules.push({kind:'app',value:x.name,path:x.path,action:'direct',servers:[]});closeSheet();saveRoute()})};
 setTimeout(loadRoute,400);
 
 
@@ -501,32 +498,10 @@ const MODEH={tun:'Весь трафик системы идёт через VPN, 
 async function loadMode(){const r=await vpn.modeGet();if(r.ok)MODE=r.data.mode;$('modeSel').value=MODE;$('modeHint').textContent=MODEH[MODE]}
 $('modeSel').onchange=async()=>{MODE=$('modeSel').value;$('modeHint').textContent=MODEH[MODE];await vpn.modeSet(MODE);reapply('Режим изменён.')};
 async function reapply(pfx){if(!on)return toast('Применится при следующем подключении','var(--t2)');if(await ask(pfx+' Переподключиться сейчас, чтобы применить?','Переподключить')){busy=true;$('hTxt').textContent='Переподключаю…';await vpn.disconnect();const r=await vpn.connect({server:S.server,logLevel:S.logLevel});if(!r.ok)$('err2').textContent=r.error;busy=false;poll()}else toast('Применится при следующем подключении','var(--t2)')}
-const srvLabel=t=>{const x=S.list.find(v=>v.tag===t);return x?parse(t).label:parse(t).label+' (нет в списке)'};
-async function loadPre(){const r=await vpn.preGet();if(r.ok)PR=r.data;renderPre()}
-function renderPre(){$('preC').textContent=(PR.rules.length||'')+' ›';
- $('preRows').innerHTML=PR.rules.length?PR.rules.map((x,i)=>`<div class="rit"><div class="grow" style="min-width:0"><div>${esc(x.value)}</div><div class="t2">${x.kind==='app'?'Приложение':'Домен'} → ${esc(srvLabel(x.server))}</div></div><button data-dp="${i}">×</button></div>`).join(''):'<div class="empty">Правил нет</div>';
- document.querySelectorAll('[data-dp]').forEach(b=>b.onclick=()=>{PR.rules.splice(+b.dataset.dp,1);savePre()})}
-async function savePre(){const r=await vpn.preSet(PR);if(r.ok)PR=r.data;renderPre();clearTimeout(rtT);rtT=setTimeout(()=>reapply('Правила изменены.'),600)}
-function preForm(){const opts=S.list.map(x=>`<option value="${esc(x.tag)}" ${x.tag===PRT.server?'selected':''}>${esc(parse(x.tag).label)}</option>`).join('');
- sheet(`<h2>Новое правило</h2><select id="prK" style="margin-top:6px"><option value="domain" ${PRT.kind==='domain'?'selected':''}>Домен</option><option value="app" ${PRT.kind==='app'?'selected':''}>Приложение</option></select>
- <div id="prDomW" class="${PRT.kind==='domain'?'':'hide'}"><input id="prDom" placeholder="example.com" value="${esc(PRT.value)}"></div>
- <div id="prAppW" class="${PRT.kind==='app'?'':'hide'}"><div class="t2" style="margin:12px 0 6px">${PRT.app?esc(PRT.app.name):'Приложение не выбрано'}</div><div class="g2"><button class="btn sm" id="prRun">Из запущенных</button><button class="btn sm" id="prPick">Выбрать файл…</button></div></div>
- <div class="t2" style="margin:14px 0 0;font-size:13px">Сервер</div><select id="prSrv" style="margin-top:6px">${opts}</select>
- <button class="btn" id="prOk" style="margin-top:14px">Добавить</button>`);
- const keep=()=>{PRT.kind=$('prK').value;PRT.value=$('prDom').value;PRT.server=$('prSrv').value};
- $('prK').onchange=()=>{keep();preForm()};
- $('prRun').onclick=async()=>{keep();sheet('<h2>Запущенные приложения</h2><div class="t2">Загружаю…</div>');const r=await vpn.procs(),l=(r.ok&&r.data)||[];
-  if(!l.length){sheet('<h2>Запущенные приложения</h2><div class="t2">Окна приложений не найдены.</div>');return}
-  sheet(`<h2>Запущенные приложения</h2>${l.map((x,i)=>`<button class="btn between" data-q="${i}"><span style="min-width:0"><div>${esc(x.name)}</div><div class="t2" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.title)}</div></span><span class="t2">+</span></button>`).join('')}`);
-  document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{PRT.app=l[+b.dataset.q];preForm()})};
- $('prPick').onclick=async()=>{keep();const r=await vpn.pickExe();if(r.ok&&r.data){PRT.app=r.data;}preForm()};
- $('prOk').onclick=()=>{keep();let v=PRT.kind==='app'?(PRT.app&&PRT.app.name):PRT.value.trim();if(!v||!PRT.server)return toast('Заполните правило','var(--er)');
-  PR.rules.push({kind:PRT.kind,value:v,server:PRT.server,...(PRT.kind==='app'&&PRT.app&&PRT.app.path?{path:PRT.app.path}:{})});closeSheet();PRT={kind:PRT.kind,value:'',app:null,server:PRT.server};savePre()}}
-$('preAdd').onclick=()=>{if(!S.list.length)return toast('Список серверов пуст','var(--er)');if(!PRT.server||!S.list.find(x=>x.tag===PRT.server))PRT.server=S.server||S.list[0].tag;preForm()};
-setTimeout(()=>{loadMode();loadPre()},500);
+setTimeout(loadMode,500);
 
 /* страницы настроек */
-const SETP=['sMain','sAdv','sPre','sRt','sRtA','sRtD'];
+const SETP=['sMain','sAdv','sRt','sRtA','sRtD'];
 function setPage(id){SETP.forEach(x=>$(x).classList.toggle('hide',x!==id));document.querySelector('main').scrollTop=0}
 document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>setPage(b.dataset.sp));
 async function renderKs(){const r=await vpn.ksGet();S.ks=!!(r.data&&r.data.on);$('ksSw').classList.toggle('act',S.ks);$('ksSw').textContent=S.ks?'Вкл':'Выкл';
@@ -535,12 +510,12 @@ $('ksSw').onclick=async()=>{if(!S.ks&&!await ask('При обрыве VPN инт
 setInterval(()=>{if(!document.hidden&&!$('pSet').classList.contains('hide'))renderKs()},4000);
 
 /* что нового и инструкция первого запуска */
-const NOTES={'1.2.0':{add:['Предварительная маршрутизация (Настройки → Дополнительные): домены и приложения всегда идут через выбранный сервер, независимо от обычной маршрутизации. Если сервер не отвечает, их трафик блокируется','Режим работы «Системный прокси» (по умолчанию остаётся TUN)','На вкладке «Серверы» показано общее число серверов и сколько из них отвечает'],chg:['Тест пинга теперь проверяет серверы по очереди и сразу показывает результат каждого']},'1.1.0':{add:['Пинг отдельного сервера: правая кнопка мыши по серверу → «Проверить пинг»','Окно «Что нового» после обновления','Инструкция при первом запуске (её можно открыть снова в Настройках)'],chg:['Автообновление теперь работает из нового репозитория Mikaela-VPN-Windows','Обновлены логотип и иконка приложения']},'1.0.9':{add:['Пинг отдельного сервера: правая кнопка мыши по серверу → «Проверить пинг»','Окно «Что нового» после обновления','Инструкция при первом запуске (её можно открыть снова в Настройках)'],chg:['Автообновление переехало в новый репозиторий Mikaela-VPN-Windows. Обновление установится само']}};
+const NOTES={'1.3.0':{add:['Правила маршрутизации для приложений и доменов: напрямую (мимо VPN) или на выбранные серверы (шестерёнка справа от правила). Если сервер не отвечает, соединение блокируется','Доменные зоны: .ru, .su, .рф и другие'],chg:['«Предварительная маршрутизация» объединена с «Маршрутизацией»','Тест пинга снова проверяет все серверы сразу, результат появляется у каждого по мере ответа','Серверы обновляются раз в минуту, обновление приложения предлагается сразу, как только готов новый релиз'],rm:['Кнопка «Обновить» на вкладке «Серверы»','Режим маршрутизации «Только список через VPN»','Настройка интервала обновления серверов и блок версии в настройках']},'1.2.0':{add:['Предварительная маршрутизация (Настройки → Дополнительные): домены и приложения всегда идут через выбранный сервер, независимо от обычной маршрутизации. Если сервер не отвечает, их трафик блокируется','Режим работы «Системный прокси» (по умолчанию остаётся TUN)','На вкладке «Серверы» показано общее число серверов и сколько из них отвечает'],chg:['Тест пинга теперь проверяет серверы по очереди и сразу показывает результат каждого']},'1.1.0':{add:['Пинг отдельного сервера: правая кнопка мыши по серверу → «Проверить пинг»','Окно «Что нового» после обновления','Инструкция при первом запуске (её можно открыть снова в Настройках)'],chg:['Автообновление теперь работает из нового репозитория Mikaela-VPN-Windows','Обновлены логотип и иконка приложения']},'1.0.9':{add:['Пинг отдельного сервера: правая кнопка мыши по серверу → «Проверить пинг»','Окно «Что нового» после обновления','Инструкция при первом запуске (её можно открыть снова в Настройках)'],chg:['Автообновление переехало в новый репозиторий Mikaela-VPN-Windows. Обновление установится само']}};
 const GUIDE=[
  ['Главная','<ul><li>Большая кнопка включает и отключает VPN</li><li>Сумма сверху — ваш баланс, нажмите на неё, чтобы пополнить</li><li>«Продлить» открывает продление подписки, если тарифов несколько, их можно переключить</li></ul>'],
  ['Серверы','<ul><li>Нажмите на сервер, чтобы выбрать его</li><li>«Тест пинга» проверяет все серверы, а правая кнопка мыши по серверу — только его</li><li>«Автовыбор» сам берёт лучший доступный сервер</li></ul>'],
  ['Устройства','<ul><li>Здесь видно, какие устройства привязаны к подписке</li><li>Лишнее можно удалить, а если лимит мал — докупить устройства</li></ul>'],
- ['Настройки','<ul><li><b>Дополнительные параметры:</b> режим работы (TUN или системный прокси), предварительная маршрутизация (домены и приложения на конкретный сервер), автозапуск, запуск в свёрнутом виде, автоподключение, Discord, блокировка интернета без VPN (Kill Switch)</li><li><b>Маршрутизация:</b> какие приложения и сайты идут мимо VPN, либо только они через VPN</li><li>Тема и частота автообновления списка серверов</li></ul>'],
+ ['Настройки','<ul><li><b>Дополнительные параметры:</b> режим работы (TUN или системный прокси), автозапуск, запуск в свёрнутом виде, автоподключение, Discord, блокировка интернета без VPN (Kill Switch)</li><li><b>Маршрутизация:</b> для приложений и доменов (в том числе зон .ru, .su, .рф) шестерёнка задаёт, куда идёт трафик: напрямую мимо VPN или на выбранные серверы</li><li>Тема приложения</li></ul>'],
  ['Работа в фоне','<ul><li>Закрытие окна не отключает VPN: приложение уходит в трей рядом с часами</li><li>Полностью выйти можно через значок в трее → «Выход»</li><li>Обновления приходят сами, приложение предложит перезапуск</li></ul>']];
 let inI=0,inSteps=[],inDone=null;
 function introShow(title,steps,done){inSteps=steps;inI=0;inDone=done;$('intro').classList.remove('hide');inRender(title)}
