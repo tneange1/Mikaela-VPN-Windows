@@ -486,15 +486,19 @@ function ruleSheet(i){const r=RT.rules[i];if(!r)return;let act=r.action,sel=new 
   if(act==='server'){list();$('gQ').oninput=()=>{q=$('gQ').value;list()}}
   $('gOk').onclick=()=>{if(act==='server'&&!sel.size)return toast('Выберите хотя бы один сервер','var(--er)');r.action=act;r.servers=act==='server'?[...sel]:[];closeSheet();saveRoute()}};draw()}
 let rtT=null;
-async function saveRoute(){const r=await vpn.routeSet(RT);if(r.ok)RT=r.data;renderRoute();clearTimeout(rtT);rtT=setTimeout(()=>reapply('Маршрутизация изменена.'),600)}
+async function saveRoute(){let r={};try{r=await vpn.routeSet(RT)}catch{}if(r.ok)RT=r.data;renderRoute();clearTimeout(rtT);rtT=setTimeout(()=>reapply('Маршрутизация изменена.'),600)}
 $('rtAdd').onclick=()=>{const n=RT.rules.length;for(const v of $('rtDom').value.split(/[\s,;]+/).filter(Boolean))RT.rules.push({kind:'domain',value:v,action:'direct',servers:[]});$('rtDom').value='';
  vpn.routeSet(RT).then(r=>{if(r.ok){const added=r.data.rules.length-n;RT=r.data;renderRoute();if(added<=0)toast('Неверный домен или он уже есть в списке','var(--er)');else{clearTimeout(rtT);rtT=setTimeout(()=>reapply('Маршрутизация изменена.'),600)}}})};
 $('rtDom').onkeydown=e=>{if(e.key==='Enter')$('rtAdd').click()};
-$('rtPick').onclick=async()=>{const r=await vpn.pickExe();if(r.ok&&r.data){RT.rules.push({kind:'app',value:r.data.name,path:r.data.path,action:'direct',servers:[]});saveRoute()}};
+$('rtPick').onclick=async()=>{const r=await vpn.pickExe();window.focus();if(r.ok&&r.data){RT.rules.push({kind:'app',value:r.data.name,path:r.data.path,action:'direct',servers:[]});saveRoute()}};
 $('rtRun').onclick=async()=>{sheet('<h2>Запущенные приложения</h2><div class="t2">Загружаю…</div>');const r=await vpn.procs(),l=(r.ok&&r.data)||[];
  if(!l.length)return sheet('<h2>Запущенные приложения</h2><div class="t2">Окна приложений не найдены. Используйте «Выбрать файл…».</div>');
- sheet(`<h2>Запущенные приложения</h2><div class="t2" style="font-size:13px;margin-bottom:6px">Нажмите, чтобы добавить в список</div>${l.map((x,i)=>{const has=RT.rules.some(a=>a.kind==='app'&&a.value.toLowerCase()===x.name.toLowerCase());return `<button class="btn between" data-p="${i}" ${has?'disabled':''}><span style="min-width:0"><div>${esc(x.name)}</div><div class="t2" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.title)}</div></span><span class="t2">${has?'добавлено':'+'}</span></button>`}).join('')}`);
- document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const x=l[+b.dataset.p];RT.rules.push({kind:'app',value:x.name,path:x.path,action:'direct',servers:[]});closeSheet();saveRoute()})};
+ sheet('<h2>Запущенные приложения</h2><input id="rtQ" placeholder="Поиск по названию или окну" autocomplete="off" style="margin:8px 0 10px"><div id="rtL"></div>');
+ const draw=()=>{const q=$('rtQ').value.trim().toLowerCase();
+  const v=l.map((x,i)=>({x,i})).filter(({x})=>!q||x.name.toLowerCase().includes(q)||String(x.title).toLowerCase().includes(q));
+  $('rtL').innerHTML=v.length?v.map(({x,i})=>{const has=RT.rules.some(a=>a.kind==='app'&&a.value.toLowerCase()===x.name.toLowerCase());return `<button class="btn between" data-p="${i}" ${has?'disabled':''}><span style="min-width:0"><div>${esc(x.name)}</div><div class="t2" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.title)}</div></span><span class="t2">${has?'добавлено':'+'}</span></button>`}).join(''):'<div class="t2" style="padding:8px 0">Ничего не найдено</div>';
+  document.querySelectorAll('#rtL [data-p]').forEach(b=>b.onclick=()=>{const x=l[+b.dataset.p];RT.rules.push({kind:'app',value:x.name,path:x.path,action:'direct',servers:[]});closeSheet();saveRoute()})};
+ $('rtQ').oninput=draw;draw();$('rtQ').focus()};
 setTimeout(loadRoute,400);
 
 
@@ -503,7 +507,7 @@ let MODE='tun',PR={rules:[]},PRT={kind:'domain',value:'',app:null,server:''};
 const MODEH={tun:'Весь трафик системы идёт через VPN, включая игры и программы без поддержки прокси. Нужны права администратора.',proxy:'Через VPN идут программы, которые используют системный прокси (браузеры и большинство приложений). Правила по приложениям гарантированно работают только в режиме TUN.'};
 async function loadMode(){const r=await vpn.modeGet();if(r.ok)MODE=r.data.mode;$('modeSel').value=MODE;$('modeHint').textContent=MODEH[MODE]}
 $('modeSel').onchange=async()=>{MODE=$('modeSel').value;$('modeHint').textContent=MODEH[MODE];await vpn.modeSet(MODE);reapply('Режим изменён.')};
-async function reapply(pfx){if(!on)return toast('Применится при следующем подключении','var(--t2)');if(await ask(pfx+' Переподключиться сейчас, чтобы применить?','Переподключить')){busy=true;$('hTxt').textContent='Переподключаю…';await vpn.disconnect();const r=await vpn.connect({server:S.server,logLevel:S.logLevel});if(!r.ok)$('err2').textContent=r.error;busy=false;poll()}else toast('Применится при следующем подключении','var(--t2)')}
+async function reapply(pfx){if(!on)return toast('Применится при следующем подключении','var(--t2)');if(busy)return toast('Применится при следующем подключении','var(--t2)');if(await ask(pfx+' Переподключиться сейчас, чтобы применить?','Переподключить')){busy=true;try{$('hTxt').textContent='Переподключаю…';await vpn.disconnect();const r=await vpn.connect({server:S.server,logLevel:S.logLevel});if(!r.ok)$('err2').textContent=r.error}catch(e){$('err2').textContent=String(e&&e.message||e)}finally{busy=false;poll()}}else toast('Применится при следующем подключении','var(--t2)')}
 setTimeout(loadMode,500);
 
 /* страницы настроек */

@@ -880,7 +880,9 @@ function routeRules() { // «напрямую»: идёт мимо туннел�
 h('routeget', async () => routeLoad());
 h('routeset', async o => routeSave(o || {}));
 h('pickexe', async () => {
-  const r = await dialog.showOpenDialog(win, { title: 'Выберите программу', properties: ['openFile'], filters: [{ name: 'Программы', extensions: ['exe'] }] });
+  // без привязки к окну (frameless-окно после модального диалога могло терять ввод), затем возвращаем фокус
+  const r = await dialog.showOpenDialog({ title: 'Выберите программу', properties: ['openFile'], filters: [{ name: 'Программы', extensions: ['exe'] }] });
+  try { win.show(); win.focus(); win.webContents.focus(); } catch {}
   if (r.canceled || !r.filePaths[0]) return null;
   return { name: path.basename(r.filePaths[0]), path: r.filePaths[0] };
 });
