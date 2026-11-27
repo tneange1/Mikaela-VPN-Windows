@@ -886,6 +886,10 @@ h('pickexe', async () => {
   if (r.canceled || !r.filePaths[0]) return null;
   return { name: path.basename(r.filePaths[0]), path: r.filePaths[0] };
 });
+h('icon', async p => {
+  if (typeof p !== 'string' || !/\.exe$/i.test(p)) return null;
+  try { const im = await app.getFileIcon(p, { size: 'normal' }); return im.isEmpty() ? null : im.toDataURL(); } catch { return null; }
+});
 h('procs', () => new Promise(res => {
   const ps = "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Process | Where-Object {$_.MainWindowTitle} | Select-Object @{n='name';e={$_.ProcessName+'.exe'}},@{n='path';e={$_.Path}},@{n='title';e={$_.MainWindowTitle}} | ConvertTo-Json -Compress";
   execFile('powershell', ['-NoProfile', '-NonInteractive', '-Command', ps], { windowsHide: true, timeout: 10000, maxBuffer: 4e6 }, (err, out) => {

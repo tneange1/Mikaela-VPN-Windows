@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld('vpn', {
   renewOptions: () => call('renewoptions'), renew: (d) => call('renew', d),
   logs: (k) => call('logs', k), copyLogs: (k) => call('copylogs', k), clearLogs: (k) => call('clearlogs', k), devicePrice: (n) => call('deviceprice', n), deviceBuy: (n) => call('devicebuy', n), openLogs: () => call('openlogs'), diag: () => call('diag'),
   subs: () => call('subs'), setSub: (id) => call('setsub', id), setRpc: (e) => call('setrpc', e), rpcInfo: () => call('rpcinfo'),
-  authOpts: () => call('authopts'), routeGet: () => call('routeget'), routeSet: (o) => call('routeset', o), pickExe: () => call('pickexe'), procs: () => call('procs'),
+  authOpts: () => call('authopts'), routeGet: () => call('routeget'), routeSet: (o) => call('routeset', o), pickExe: () => call('pickexe'), procs: () => call('procs'), icon: (p) => call('icon', p),
   modeGet: () => call('modeget'), modeSet: (m) => call('modeset', m),
   ksGet: () => call('ksget'), ksSet: (v) => call('ksset', v),
   autoGet: () => call('autoget'), autoSet: (o, m) => call('autoset', o, m),

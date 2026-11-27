@@ -75,7 +75,7 @@ nav button.act{color:var(--tx)}
 .stp button:hover{background:var(--sh)}.stp button:disabled{opacity:.4;cursor:default}
 .stp .num{font-size:40px;font-weight:300;min-width:56px;text-align:center}
 .ctr{text-align:center}
-.rit{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--dv);font-size:14px}.rit .t2{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rit button{border:0;background:none;color:var(--t2);font-size:18px;cursor:pointer;padding:0 6px}.rit button:hover{color:var(--er)}.empty{font-size:13px;color:var(--t3);padding:8px 0}
+.rit{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--dv);font-size:14px}.rit .t2{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rit button{border:0;background:none;color:var(--t2);font-size:18px;cursor:pointer;padding:0 6px}.rit button:hover{color:var(--er)}.ico{width:32px;height:32px;border-radius:8px;flex:none;background:var(--sf);object-fit:contain}.empty{font-size:13px;color:var(--t3);padding:8px 0}
 .bk{border:0;background:none;color:var(--t2);font:inherit;font-size:14px;cursor:pointer;padding:0;margin-bottom:6px}.bk:hover{color:var(--tx)}
 #updOv{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
 #updOv .box{width:100%;max-width:340px;text-align:center;padding:28px 24px;border-radius:20px;background:var(--bg);border:1px solid var(--bd)}
@@ -187,7 +187,7 @@ nav button.act{color:var(--tx)}
       <h1 class="h1">Приложения</h1>
       <div class="rows" id="rtApps"></div>
       <div class="g2"><button class="btn sm" id="rtRun">Из запущенных</button><button class="btn sm" id="rtPick">Выбрать файл…</button></div>
-      <div class="meta">Новое приложение идёт напрямую. Шестерёнка — изменить: напрямую или на сервер.</div>
+      <div class="meta">При добавлении приложения выберите, куда направлять его трафик: напрямую или на сервер. Шестерёнка — изменить.</div>
     </div>
     <div id="sRtD" class="hide">
       <button class="bk" data-sp="sRt">‹ Назад</button>
@@ -461,18 +461,22 @@ function applyAO(){const o=AO;const e=o.email;['tabs','em','pwf','go','fgW'].for
   else{say('Откроется окно кабинета — выберите там способ входа',true);const r=await vpn.webLogin(k);r.ok?enter(r.data):say(r.error)}})}
 /* маршрутизация */
 let RT={rules:[]};
+const ICO=new Map(),DEF_ICO='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#2a2a2a"/><rect x="8" y="9" width="16" height="14" rx="2" fill="none" stroke="#777" stroke-width="1.6"/><path d="M8 13h16" stroke="#777" stroke-width="1.6"/></svg>');
+const icoTag=p=>`<img class="ico" data-ic="${esc(p||'')}" src="${ICO.get(p)||DEF_ICO}" alt="">`;
+async function fillIcons(root){for(const im of (root||document).querySelectorAll('img[data-ic]')){const p=im.dataset.ic;if(!p||ICO.has(p))continue;ICO.set(p,null);vpn.icon(p).then(r=>{if(r&&r.ok&&r.data){ICO.set(p,r.data);document.querySelectorAll('img[data-ic]').forEach(e=>{if(e.dataset.ic===p)e.src=r.data})}else ICO.delete(p)}).catch(()=>ICO.delete(p))}}
 const GEAR='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 const srvLabel=t=>{const x=S.list.find(v=>v.tag===t);return parse(t).label+(x?'':' (нет в списке)')};
 const actTxt=r=>r.action==='server'?'→ '+r.servers.map(srvLabel).join(', '):'Напрямую (мимо VPN)';
 async function loadRoute(){const r=await vpn.routeGet();if(r.ok)RT=r.data;renderRoute()}
-function ruleRow(r,i){return `<div class="rit"><div class="grow" style="min-width:0"><div>${esc(r.value)}</div>${r.path?`<div class="t2">${esc(r.path)}</div>`:''}<div class="t2" style="${r.action==='server'?'color:var(--ok)':''}">${esc(actTxt(r))}</div></div><button data-rg="${i}" title="Настроить" style="display:flex;align-items:center">${GEAR}</button><button data-rd="${i}" title="Удалить">×</button></div>`}
+function ruleRow(r,i){return `<div class="rit">${r.kind==='app'?icoTag(r.path):''}<div class="grow" style="min-width:0"><div>${esc(r.value)}</div>${r.path?`<div class="t2">${esc(r.path)}</div>`:''}<div class="t2" style="${r.action==='server'?'color:var(--ok)':''}">${esc(actTxt(r))}</div></div><button data-rg="${i}" title="Настроить" style="display:flex;align-items:center">${GEAR}</button><button data-rd="${i}" title="Удалить">×</button></div>`}
 function renderRoute(){const A=RT.rules.map((r,i)=>[r,i]).filter(x=>x[0].kind==='app'),D=RT.rules.map((r,i)=>[r,i]).filter(x=>x[0].kind==='domain');
  $('rtAc').textContent=(A.length||'')+' ›';$('rtDc').textContent=(D.length||'')+' ›';
  $('rtApps').innerHTML=A.length?A.map(x=>ruleRow(x[0],x[1])).join(''):'<div class="empty">Список пуст</div>';
  $('rtDoms').innerHTML=D.length?D.map(x=>ruleRow(x[0],x[1])).join(''):'<div class="empty">Список пуст</div>';
+ fillIcons($('rtApps'));
  document.querySelectorAll('[data-rd]').forEach(b=>b.onclick=()=>{RT.rules.splice(+b.dataset.rd,1);saveRoute()});
  document.querySelectorAll('[data-rg]').forEach(b=>b.onclick=()=>ruleSheet(+b.dataset.rg))}
-function ruleSheet(i){const r=RT.rules[i];if(!r)return;let act=r.action,sel=new Set(r.servers),q='';
+function ruleSheet(i,isNew){const r=isNew?i:RT.rules[i];if(!r)return;let act=r.action,sel=new Set(r.servers),q='';
  const mark=(b,on)=>{b.lastElementChild.textContent=on?'✓':''};
  const list=()=>{const box=$('gList');if(!box)return;const top=box.scrollTop,items=S.list.map((x,k)=>[x,k]).filter(([x])=>qOk(x.tag,q));
   box.innerHTML=items.map(([x,k])=>`<button class="btn between" data-sv="${k}"><span>${esc(parse(x.tag).label)}</span><span>${sel.has(x.tag)?'✓':''}</span></button>`).join('')||'<div class="t2" style="padding:8px 0">Ничего не найдено</div>';box.scrollTop=top;
@@ -481,23 +485,23 @@ function ruleSheet(i){const r=RT.rules[i];if(!r)return;let act=r.action,sel=new 
   <button class="btn between" id="gD"><span>Напрямую (обход туннеля)</span><span>${act==='direct'?'✓':''}</span></button>
   <button class="btn between" id="gS"><span>На конкретные серверы</span><span>${act==='server'?'✓':''}</span></button>
   ${act==='server'?`<div class="t2" style="font-size:13px;margin:10px 0 6px">Выберите один или несколько серверов. Если выбрано несколько, берётся доступный с лучшим пингом.</div><input id="gQ" placeholder="Поиск сервера" autocomplete="off" value="${esc(q)}" style="margin:0 0 8px"><div id="gList" style="max-height:34vh;overflow:auto"></div>`:''}
-  <button class="btn" id="gOk" style="margin-top:12px">Сохранить</button>`);
+  <button class="btn" id="gOk" style="margin-top:12px">${isNew?'Добавить':'Сохранить'}</button>`);
   $('gD').onclick=()=>{act='direct';draw()};$('gS').onclick=()=>{act='server';draw()};
   if(act==='server'){list();$('gQ').oninput=()=>{q=$('gQ').value;list()}}
-  $('gOk').onclick=()=>{if(act==='server'&&!sel.size)return toast('Выберите хотя бы один сервер','var(--er)');r.action=act;r.servers=act==='server'?[...sel]:[];closeSheet();saveRoute()}};draw()}
+  $('gOk').onclick=()=>{if(act==='server'&&!sel.size)return toast('Выберите хотя бы один сервер','var(--er)');r.action=act;r.servers=act==='server'?[...sel]:[];if(isNew)RT.rules.push(r);closeSheet();saveRoute()}};draw()}
 let rtT=null;
 async function saveRoute(){let r={};try{r=await vpn.routeSet(RT)}catch{}if(r.ok)RT=r.data;renderRoute();clearTimeout(rtT);rtT=setTimeout(()=>reapply('Маршрутизация изменена.'),600)}
 $('rtAdd').onclick=()=>{const n=RT.rules.length;for(const v of $('rtDom').value.split(/[\s,;]+/).filter(Boolean))RT.rules.push({kind:'domain',value:v,action:'direct',servers:[]});$('rtDom').value='';
  vpn.routeSet(RT).then(r=>{if(r.ok){const added=r.data.rules.length-n;RT=r.data;renderRoute();if(added<=0)toast('Неверный домен или он уже есть в списке','var(--er)');else{clearTimeout(rtT);rtT=setTimeout(()=>reapply('Маршрутизация изменена.'),600)}}})};
 $('rtDom').onkeydown=e=>{if(e.key==='Enter')$('rtAdd').click()};
-$('rtPick').onclick=async()=>{const r=await vpn.pickExe();window.focus();if(r.ok&&r.data){RT.rules.push({kind:'app',value:r.data.name,path:r.data.path,action:'direct',servers:[]});saveRoute()}};
+$('rtPick').onclick=async()=>{const r=await vpn.pickExe();window.focus();if(r.ok&&r.data){if(RT.rules.some(a=>a.kind==='app'&&a.value.toLowerCase()===r.data.name.toLowerCase()))return toast('Это приложение уже в списке','var(--er)');ruleSheet({kind:'app',value:r.data.name,path:r.data.path,action:'direct',servers:[]},true)}};
 $('rtRun').onclick=async()=>{sheet('<h2>Запущенные приложения</h2><div class="t2">Загружаю…</div>');const r=await vpn.procs(),l=(r.ok&&r.data)||[];
  if(!l.length)return sheet('<h2>Запущенные приложения</h2><div class="t2">Окна приложений не найдены. Используйте «Выбрать файл…».</div>');
  sheet('<h2>Запущенные приложения</h2><input id="rtQ" placeholder="Поиск по названию или окну" autocomplete="off" style="margin:8px 0 10px"><div id="rtL"></div>');
  const draw=()=>{const q=$('rtQ').value.trim().toLowerCase();
   const v=l.map((x,i)=>({x,i})).filter(({x})=>!q||x.name.toLowerCase().includes(q)||String(x.title).toLowerCase().includes(q));
-  $('rtL').innerHTML=v.length?v.map(({x,i})=>{const has=RT.rules.some(a=>a.kind==='app'&&a.value.toLowerCase()===x.name.toLowerCase());return `<button class="btn between" data-p="${i}" ${has?'disabled':''}><span style="min-width:0"><div>${esc(x.name)}</div><div class="t2" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.title)}</div></span><span class="t2">${has?'добавлено':'+'}</span></button>`}).join(''):'<div class="t2" style="padding:8px 0">Ничего не найдено</div>';
-  document.querySelectorAll('#rtL [data-p]').forEach(b=>b.onclick=()=>{const x=l[+b.dataset.p];RT.rules.push({kind:'app',value:x.name,path:x.path,action:'direct',servers:[]});closeSheet();saveRoute()})};
+  $('rtL').innerHTML=v.length?v.map(({x,i})=>{const has=RT.rules.some(a=>a.kind==='app'&&a.value.toLowerCase()===x.name.toLowerCase());return `<button class="btn between" data-p="${i}" ${has?'disabled':''}>${icoTag(x.path)}<span style="min-width:0;flex:1;margin:0 12px;text-align:left"><div>${esc(x.name)}</div><div class="t2" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.title)}</div></span><span class="t2">${has?'добавлено':'+'}</span></button>`}).join(''):'<div class="t2" style="padding:8px 0">Ничего не найдено</div>';
+  fillIcons($('rtL'));document.querySelectorAll('#rtL [data-p]').forEach(b=>b.onclick=()=>{const x=l[+b.dataset.p];ruleSheet({kind:'app',value:x.name,path:x.path,action:'direct',servers:[]},true)})};
  $('rtQ').oninput=draw;draw();$('rtQ').focus()};
 setTimeout(loadRoute,400);
 
