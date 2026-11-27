@@ -476,7 +476,7 @@ function renderRoute(){const A=RT.rules.map((r,i)=>[r,i]).filter(x=>x[0].kind===
  fillIcons($('rtApps'));
  document.querySelectorAll('[data-rd]').forEach(b=>b.onclick=()=>{RT.rules.splice(+b.dataset.rd,1);saveRoute()});
  document.querySelectorAll('[data-rg]').forEach(b=>b.onclick=()=>ruleSheet(+b.dataset.rg))}
-function ruleSheet(i,isNew){const r=isNew?i:RT.rules[i];if(!r)return;let act=r.action,sel=new Set(r.servers),q='';
+function ruleSheet(i,isNew,done){const r=isNew?i:RT.rules[i];if(!r)return;let act=r.action,sel=new Set(r.servers),q='';
  const mark=(b,on)=>{b.lastElementChild.textContent=on?'✓':''};
  const list=()=>{const box=$('gList');if(!box)return;const top=box.scrollTop,items=S.list.map((x,k)=>[x,k]).filter(([x])=>qOk(x.tag,q));
   box.innerHTML=items.map(([x,k])=>`<button class="btn between" data-sv="${k}"><span>${esc(parse(x.tag).label)}</span><span>${sel.has(x.tag)?'✓':''}</span></button>`).join('')||'<div class="t2" style="padding:8px 0">Ничего не найдено</div>';box.scrollTop=top;
@@ -488,11 +488,13 @@ function ruleSheet(i,isNew){const r=isNew?i:RT.rules[i];if(!r)return;let act=r.a
   <button class="btn" id="gOk" style="margin-top:12px">${isNew?'Добавить':'Сохранить'}</button>`);
   $('gD').onclick=()=>{act='direct';draw()};$('gS').onclick=()=>{act='server';draw()};
   if(act==='server'){list();$('gQ').oninput=()=>{q=$('gQ').value;list()}}
-  $('gOk').onclick=()=>{if(act==='server'&&!sel.size)return toast('Выберите хотя бы один сервер','var(--er)');r.action=act;r.servers=act==='server'?[...sel]:[];if(isNew)RT.rules.push(r);closeSheet();saveRoute()}};draw()}
+  $('gOk').onclick=()=>{if(act==='server'&&!sel.size)return toast('Выберите хотя бы один сервер','var(--er)');r.action=act;r.servers=act==='server'?[...sel]:[];if(isNew){if(r._vals)for(const v of r._vals)RT.rules.push({kind:'domain',value:v,action:r.action,servers:r.servers});else RT.rules.push(r)}closeSheet();(done||saveRoute)()}};draw()}
 let rtT=null;
 async function saveRoute(){let r={};try{r=await vpn.routeSet(RT)}catch{}if(r.ok)RT=r.data;renderRoute();clearTimeout(rtT);rtT=setTimeout(()=>reapply('Маршрутизация изменена.'),600)}
-$('rtAdd').onclick=()=>{const n=RT.rules.length;for(const v of $('rtDom').value.split(/[\s,;]+/).filter(Boolean))RT.rules.push({kind:'domain',value:v,action:'direct',servers:[]});$('rtDom').value='';
- vpn.routeSet(RT).then(r=>{if(r.ok){const added=r.data.rules.length-n;RT=r.data;renderRoute();if(added<=0)toast('Неверный домен или он уже есть в списке','var(--er)');else{clearTimeout(rtT);rtT=setTimeout(()=>reapply('Маршрутизация изменена.'),600)}}})};
+$('rtAdd').onclick=()=>{const have=new Set(RT.rules.filter(x=>x.kind==='domain').map(x=>x.value.toLowerCase())),vals=[];for(const v of $('rtDom').value.split(/[\s,;]+/).filter(Boolean)){const k=v.toLowerCase();if(!have.has(k)){have.add(k);vals.push(v)}}
+ if(!vals.length)return toast('Введите домен или он уже есть в списке','var(--er)');
+ ruleSheet({kind:'domain',value:vals.join(', '),action:'direct',servers:[],_vals:vals},true,()=>{const n=RT.rules.length-vals.length;$('rtDom').value='';
+  vpn.routeSet(RT).then(r=>{if(r.ok){const added=r.data.rules.length-n;RT=r.data;renderRoute();if(added<=0)toast('Неверный домен или он уже есть в списке','var(--er)');else{clearTimeout(rtT);rtT=setTimeout(()=>reapply('Маршрутизация изменена.'),600)}}})})};
 $('rtDom').onkeydown=e=>{if(e.key==='Enter')$('rtAdd').click()};
 $('rtPick').onclick=async()=>{const r=await vpn.pickExe();window.focus();if(r.ok&&r.data){if(RT.rules.some(a=>a.kind==='app'&&a.value.toLowerCase()===r.data.name.toLowerCase()))return toast('Это приложение уже в списке','var(--er)');ruleSheet({kind:'app',value:r.data.name,path:r.data.path,action:'direct',servers:[]},true)}};
 $('rtRun').onclick=async()=>{sheet('<h2>Запущенные приложения</h2><div class="t2">Загружаю…</div>');const r=await vpn.procs(),l=(r.ok&&r.data)||[];
