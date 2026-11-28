@@ -950,12 +950,23 @@ function initTray() {
 }
 
 // ---- автообновление клиента (electron-updater, GitHub Releases) ----
+const CHANNELS = ['stable', 'ptb', 'dev'];
+const chanNow = () => { const c = setLoad().channel; return CHANNELS.includes(c) ? c : 'stable'; };
+// stable = обычные релизы (latest.yml), ptb/dev = пререлизы vX.Y.Z-ptb.N / vX.Y.Z-dev.N со своим ptb.yml / dev.yml
+function applyChannel() {
+  if (!updater) return;
+  const c = chanNow();
+  updater.channel = c === 'stable' ? 'latest' : c;
+  updater.allowPrerelease = c !== 'stable';
+  updater.allowDowngrade = true;
+}
 let updater = null, upd = { state: 'idle', version: '', percent: 0, error: '' };
 function initUpdater() {
   if (!app.isPackaged || process.env.PORTABLE_EXECUTABLE_DIR) { upd.state = 'off'; return; }
   try {
     updater = require('electron-updater').autoUpdater;
     updater.autoDownload = true; updater.autoInstallOnAppQuit = true;
+    applyChannel();
     updater.logger = { info: m => log('update', String(m)), warn: m => log('update', String(m)), error: m => log('update', String(m)), debug() {} };
     updater.on('checking-for-update', () => { upd.state = 'checking'; });
     updater.on('update-available', i => { upd = { state: 'downloading', version: i.version, percent: 0, error: '' }; });
@@ -967,7 +978,14 @@ function initUpdater() {
     setTimeout(chk, 8000); setInterval(chk, 60000);  // без кнопок и окон: как только в GitHub появляется готовый релиз, он скачивается и предлагается установить
   } catch (e) { upd.state = 'off'; log('update', 'не запущено: ' + e.message); }
 }
-h('updinfo', async () => ({ ...upd, current: app.getVersion(), enabled: !!updater }));
+h('updinfo', async () => ({ ...upd, current: app.getVersion(), enabled: !!updater, channel: chanNow() }));
+h('chset', async c => {
+  if (!CHANNELS.includes(c)) return { channel: chanNow() };
+  const st = setLoad(); st.channel = c; setSave(st); log('update', 'канал обновлений: ' + c);
+  upd = { state: 'idle', version: '', percent: 0, error: '' };
+  if (updater) { applyChannel(); updater.checkForUpdates().catch(() => {}); }
+  return { channel: c };
+});
 h('updcheck', async () => { if (updater) { try { await updater.checkForUpdates(); } catch {} } return { ...upd, current: app.getVersion(), enabled: !!updater }; });
 h('updinstall', async () => { quitting = true; if (updater && upd.state === 'ready') { try { proxyOff(); for (const p of [sb, xray, ...pre]) if (p) p.kill(); } catch {} updater.quitAndInstall(true, true); } return {}; });
 

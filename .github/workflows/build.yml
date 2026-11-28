@@ -1,7 +1,7 @@
 name: build-windows
 on:
   push:
-    branches: [main]
+    branches: [main, ptb, dev]
     tags: ['v*']
   workflow_dispatch:
 permissions:
@@ -35,6 +35,11 @@ jobs:
         run: |
           $t = "${{ github.ref_name }}"
           if ($t -like 'v*') { npm version $t.Substring(1) --no-git-tag-version --allow-same-version }
+          # ptb/dev: версия X.Y.Z-ptb.N / X.Y.Z-dev.N, пререлиз со своим каналом (ptb.yml / dev.yml)
+          if ($t -eq 'ptb' -or $t -eq 'dev') {
+            $b = (Get-Content package.json -Raw | ConvertFrom-Json).version
+            npm version "$b-$t.${{ github.run_number }}" --no-git-tag-version --allow-same-version
+          }
       - name: Check release
         id: rel
         shell: pwsh
@@ -44,6 +49,7 @@ jobs:
           $v = (Get-Content package.json -Raw | ConvertFrom-Json).version
           gh release view "v$v" --repo "${{ github.repository }}" *> $null
           $new = ($LASTEXITCODE -ne 0)
+          if ("${{ github.ref_name }}" -eq 'ptb' -or "${{ github.ref_name }}" -eq 'dev') { $new = $true }
           "version=$v" >> $env:GITHUB_OUTPUT
           "new=$($new.ToString().ToLower())" >> $env:GITHUB_OUTPUT
           $global:LASTEXITCODE = 0
@@ -54,6 +60,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          $rt = if ("${{ github.ref_name }}" -eq 'ptb' -or "${{ github.ref_name }}" -eq 'dev') { 'prerelease' } else { 'release' }
+          node -e "const f=require('fs'),p=JSON.parse(f.readFileSync('package.json','utf8'));p.build.publish[0].releaseType='$rt';f.writeFileSync('package.json',JSON.stringify(p,null,2))"
           if ("${{ github.ref }}".StartsWith("refs/tags/v") -or "${{ steps.rel.outputs.new }}" -eq "true") { npx electron-builder --win --x64 --publish always }
           else { npx electron-builder --win --x64 --publish never }
       - uses: actions/upload-artifact@v4
