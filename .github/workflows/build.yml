@@ -61,7 +61,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $rt = if ("${{ github.ref_name }}" -eq 'ptb' -or "${{ github.ref_name }}" -eq 'dev') { 'prerelease' } else { 'release' }
-          node -e "const f=require('fs'),p=JSON.parse(f.readFileSync('package.json','utf8'));p.build.publish[0].releaseType='$rt';f.writeFileSync('package.json',JSON.stringify(p,null,2))"
+          node -e "const f=require('fs'),p=JSON.parse(f.readFileSync('package.json','utf8'));p.build.publish[0].releaseType='$rt';if('$rt'==='prerelease')p.build.publish[0].channel='${{ github.ref_name }}';f.writeFileSync('package.json',JSON.stringify(p,null,2))"
           if ("${{ github.ref }}".StartsWith("refs/tags/v") -or "${{ steps.rel.outputs.new }}" -eq "true") { npx electron-builder --win --x64 --publish always }
           else { npx electron-builder --win --x64 --publish never }
       - uses: actions/upload-artifact@v4
