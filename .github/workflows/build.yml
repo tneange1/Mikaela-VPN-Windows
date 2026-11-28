@@ -1,7 +1,7 @@
 name: build-windows
 on:
   push:
-    branches: [main, ptb, dev]
+    branches: [stable, ptb, dev]
     tags: ['v*']
   workflow_dispatch:
 permissions:
@@ -54,7 +54,7 @@ jobs:
           "new=$($new.ToString().ToLower())" >> $env:GITHUB_OUTPUT
           $global:LASTEXITCODE = 0
       - run: npm install
-      # Релиз создаётся автоматически: тег v* или пуш в main с версией package.json, для которой релиза ещё нет
+      # Релиз создаётся автоматически: тег v* или пуш в stable с версией package.json, для которой релиза ещё нет
       - name: Build (publish on tag or new version)
         shell: pwsh
         env:
