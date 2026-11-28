@@ -15,6 +15,6 @@ contextBridge.exposeInMainWorld('vpn', {
   modeGet: () => call('modeget'), modeSet: (m) => call('modeset', m),
   ksGet: () => call('ksget'), ksSet: (v) => call('ksset', v),
   autoGet: () => call('autoget'), autoSet: (o, m) => call('autoset', o, m),
-  updInfo: () => call('updinfo'), updCheck: () => call('updcheck'), updInstall: () => call('updinstall'), chSet: c => call('chset', c),
+  updInfo: () => call('updinfo'), updCheck: () => call('updcheck'), updInstall: () => call('updinstall'), chSet: c => call('chset', c), logsGet: () => call('logs'), logsClear: () => call('clearlogs'), netApps: () => call('netapps'),
   openCabinet: () => call('cabinet'),
 });

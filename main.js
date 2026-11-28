@@ -890,6 +890,21 @@ h('icon', async p => {
   if (typeof p !== 'string' || !/\.exe$/i.test(p)) return null;
   try { const im = await app.getFileIcon(p, { size: 'normal' }); return im.isEmpty() ? null : im.toDataURL(); } catch { return null; }
 });
+h('logs', async () => ({ text: [...logBuf.x.map(l => l), ...logBuf.c.map(l => '[кабинет] ' + l)].slice(-400).join('\n') }));
+h('clearlogs', async () => { logBuf.x.length = 0; logBuf.c.length = 0; return {}; });
+// приложения с активными сетевыми соединениями (для предложений при первичной настройке маршрутизации)
+h('netapps', () => new Promise(res => {
+  const ps = "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $g=@{}; Get-NetTCPConnection -State Established -ErrorAction SilentlyContinue | ForEach-Object { $g[$_.OwningProcess]++ }; Get-Process | Where-Object { $g.ContainsKey($_.Id) -and $_.Path } | Select-Object @{n='name';e={$_.ProcessName+'.exe'}},@{n='path';e={$_.Path}},@{n='n';e={$g[$_.Id]}} | ConvertTo-Json -Compress";
+  execFile('powershell', ['-NoProfile', '-NonInteractive', '-Command', ps], { windowsHide: true, timeout: 15000, maxBuffer: 4e6 }, (err, out) => {
+    if (err) return res([]);
+    try {
+      let a = JSON.parse(String(out).trim() || '[]'); if (!Array.isArray(a)) a = [a];
+      const by = new Map();
+      for (const x of a) { if (!x || !x.name || /^(xray|sing-box|mikaela vpn|mikaela-vpn|svchost|system|lsass|services|wininit|csrss|smss|spoolsv|searchhost|searchapp|backgroundtaskhost|msedgewebview2|runtimebroker)\.exe$/i.test(x.name) || /\\windows\\/i.test(x.path || '')) continue; const k = x.name.toLowerCase(), e = by.get(k); if (e) e.n += x.n; else by.set(k, { name: x.name, path: x.path, n: x.n }); }
+      res([...by.values()].sort((p, q) => q.n - p.n).slice(0, 12));
+    } catch { res([]); }
+  });
+}));
 h('procs', () => new Promise(res => {
   const ps = "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Process | Where-Object {$_.MainWindowTitle} | Select-Object @{n='name';e={$_.ProcessName+'.exe'}},@{n='path';e={$_.Path}},@{n='title';e={$_.MainWindowTitle}} | ConvertTo-Json -Compress";
   execFile('powershell', ['-NoProfile', '-NonInteractive', '-Command', ps], { windowsHide: true, timeout: 10000, maxBuffer: 4e6 }, (err, out) => {

@@ -159,6 +159,7 @@ nav button.act{color:var(--tx)}
       <p class="sub" style="display:block">Параметры приложения</p>
       <button class="btn between" data-sp="sAdv"><span>Дополнительные настройки</span><span class="t2">›</span></button>
       <button class="btn between" data-sp="sRt"><span>Маршрутизация</span><span class="t2">›</span></button>
+      <button class="btn between" data-sp="sLog"><span>Журнал</span><span class="t2">›</span></button>
       <div class="sec" style="margin-top:34px"><div class="hdr">Тема<select id="themeSel" class="s"><option value="system">Как в системе</option><option value="light">Белая</option><option value="gray">Серая</option><option value="dark">Чёрная</option></select></div></div>
       <div class="sec" id="verInfo"><div class="hdr">Версия<span id="viV">—</span></div><div class="hdr" style="margin-top:12px">Канал обновлений<span id="viC">—</span></div></div>
       <div class="sec"><div class="hdr" id="acc">—</div><button class="btn c" id="out">Выйти из аккаунта</button></div>
@@ -175,6 +176,13 @@ nav button.act{color:var(--tx)}
         <div class="meta">Блокировка интернета без VPN: если соединение неожиданно оборвётся, весь трафик будет заблокирован, пока вы не подключитесь снова или не выключите функцию. Снимается при выходе из приложения.</div><div class="meta" id="ksHint"></div></div>
       <div class="sec"><div class="hdr">Канал обновлений<select id="chSel" class="s"><option value="stable">Stable</option><option value="ptb">PTB</option><option value="dev">Dev</option></select></div><div class="meta" id="chHint"></div></div>
       <div class="sec"><div class="hdr">Показывать в Discord<button class="btn sm" id="rpcSw" style="width:auto;padding:6px 14px"></button></div><div class="meta" id="rpcHint"></div></div>
+    </div>
+    <div id="sLog" class="hide">
+      <button class="bk" data-sp="sMain">‹ Назад</button>
+      <h1 class="h1">Журнал</h1>
+      <p class="sub" style="display:block">Последние события приложения, хранятся только в памяти и пропадают при выходе. Секретные данные скрыты.</p>
+      <pre id="logTxt" style="margin:14px 0 0;max-height:52vh;overflow:auto;white-space:pre-wrap;word-break:break-all;font-size:11px;line-height:1.5;color:var(--t2);background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px"></pre>
+      <div class="g2"><button class="btn sm" id="logCopy">Скопировать</button><button class="btn sm" id="logClr">Очистить</button></div>
     </div>
     <div id="sRt" class="hide">
       <button class="bk" data-sp="sMain">‹ Назад</button>
@@ -497,7 +505,7 @@ function ruleSheet(i,isNew,done){const r=isNew?i:RT.rules[i];if(!r)return;let ac
   <button class="btn" id="gOk" style="margin-top:12px">${isNew?'Добавить':'Сохранить'}</button>`);
   $('gD').onclick=()=>{act='direct';draw()};$('gS').onclick=()=>{act='server';draw()};
   if(act==='server'){list();$('gQ').oninput=()=>{q=$('gQ').value;list()}}
-  $('gOk').onclick=()=>{if(act==='server'&&!sel.size)return toast('Выберите хотя бы один сервер','var(--er)');r.action=act;r.servers=act==='server'?[...sel]:[];if(isNew){if(r._vals)for(const v of r._vals)RT.rules.push({kind:'domain',value:v,action:r.action,servers:r.servers});else RT.rules.push(r)}closeSheet();(done||saveRoute)()}};draw()}
+  $('gOk').onclick=()=>{if(act==='server'&&!sel.size)return toast('Выберите хотя бы один сервер','var(--er)');r.action=act;r.servers=act==='server'?[...sel]:[];if(isNew){if(r._vals)for(const v of r._vals)RT.rules.push({kind:'domain',value:v,action:r.action,servers:r.servers});else if(r._multi)for(const m of r._multi)RT.rules.push({...m,action:r.action,servers:r.servers});else RT.rules.push(r)}closeSheet();(done||saveRoute)()}};draw()}
 let rtDirty=false;
 function markDirty(){if(!on)return;rtDirty=true;$('rtBar').classList.remove('hide')}
 async function rtApply(){if(!rtDirty)return;rtDirty=false;$('rtBar').classList.add('hide');if(!on||busy)return;await restartTunnel()}
@@ -519,6 +527,20 @@ $('rtRun').onclick=async()=>{sheet('<h2>Запущенные приложени�
   fillIcons($('rtL'));document.querySelectorAll('#rtL [data-p]').forEach(b=>b.onclick=()=>{const x=l[+b.dataset.p];ruleSheet({kind:'app',value:x.name,path:x.path,action:'direct',servers:[]},true)})};
  $('rtQ').oninput=draw;draw();$('rtQ').focus()};
 setTimeout(loadRoute,400);
+/* первичная настройка маршрутизации (при первом запуске): предлагаем приложения с активными сетевыми соединениями */
+async function rtWizard(){
+ sheet('<h2>Настроить маршрутизацию?</h2><div class="t2" style="font-size:14px;margin:6px 0 14px">Для каждого приложения можно выбрать: идти напрямую, мимо VPN, или через конкретный сервер. Предложим программы, которые сейчас активно пользуются сетью. Всё можно изменить позже в Настройки → Маршрутизация.</div><button class="btn" id="wzGo">Продолжить</button><button class="btn c" id="wzSkip" style="margin-top:10px">Пропустить</button>');
+ $('wzSkip').onclick=()=>closeSheet();
+ $('wzGo').onclick=async()=>{sheet('<h2>Приложения</h2><div class="t2">Ищу…</div>');const r=await vpn.netApps(),l=((r.ok&&r.data)||[]).filter(x=>!RT.rules.some(a=>a.kind==='app'&&a.value.toLowerCase()===x.name.toLowerCase()));
+  if(!l.length)return sheet('<h2>Приложения</h2><div class="t2" style="margin-bottom:12px">Ничего не нашёл. Добавить приложения можно в Настройки → Маршрутизация → Приложения.</div><button class="btn" id="wzX">Готово</button>'),$('wzX').onclick=closeSheet;
+  const sel=new Set();
+  sheet('<h2>Часто используемые</h2><div class="t2" style="font-size:13px;margin-bottom:8px">Приложения, которые сейчас больше всего используют сеть. Отметьте нужные.</div><div id="wzL" style="max-height:44vh;overflow:auto"></div><button class="btn" id="wzNext" style="margin-top:12px">Далее</button><button class="btn c" id="wzSk2" style="margin-top:10px">Пропустить</button>');
+  const draw=()=>{$('wzL').innerHTML=l.map((x,i)=>`<button class="btn between" data-w="${i}">${icoTag(x.path)}<span style="min-width:0;flex:1;margin:0 12px;text-align:left"><div>${esc(x.name)}</div><div class="t2" style="font-size:12px">соединений: ${x.n}</div></span><span>${sel.has(i)?'✓':''}</span></button>`).join('');fillIcons($('wzL'));
+   document.querySelectorAll('#wzL [data-w]').forEach(b=>b.onclick=()=>{const i=+b.dataset.w;sel.has(i)?sel.delete(i):sel.add(i);draw()})};draw();
+  $('wzSk2').onclick=closeSheet;
+  $('wzNext').onclick=()=>{if(!sel.size)return toast('Отметьте хотя бы одно приложение','var(--er)');const m=[...sel].map(i=>({kind:'app',value:l[i].name,path:l[i].path,servers:[]}));closeSheet();setTimeout(()=>ruleSheet({kind:'app',value:m.map(x=>x.value).join(', '),action:'direct',servers:[],_multi:m},true),50)}}}
+function wizSoon(n){if(ls.get('rtWiz'))return;if($('intro').classList.contains('hide')&&!$('sheet').classList.contains('hide')===false&&!$('app').classList.contains('hide')){ls.set('rtWiz','1');rtWizard();return}if(n>0)setTimeout(()=>wizSoon(n-1),2000)}
+setTimeout(()=>wizSoon(30),4000);
 
 
 /* режим работы и предварительная маршрутизация */
@@ -531,8 +553,12 @@ async function reapply(pfx){if(!on)return toast('Применится при с�
 setTimeout(loadMode,500);
 
 /* страницы настроек */
-const SETP=['sMain','sAdv','sRt','sRtA','sRtD'];
-function setPage(id){SETP.forEach(x=>$(x).classList.toggle('hide',x!==id));document.querySelector('main').scrollTop=0}
+const SETP=['sMain','sAdv','sRt','sRtA','sRtD','sLog'];
+function setPage(id){SETP.forEach(x=>$(x).classList.toggle('hide',x!==id));document.querySelector('main').scrollTop=0;if(id==='sLog')renderLog()}
+async function renderLog(){try{const r=await vpn.logsGet(),t=(r.data&&r.data.text)||'';const el=$('logTxt'),bot=el.scrollTop+el.clientHeight>=el.scrollHeight-8;el.textContent=t||'Пока пусто';if(bot)el.scrollTop=el.scrollHeight}catch{}}
+$('logCopy').onclick=async()=>{try{await navigator.clipboard.writeText($('logTxt').textContent);toast('Журнал скопирован')}catch{toast('Не удалось скопировать','var(--er)')}};
+$('logClr').onclick=async()=>{await vpn.logsClear();renderLog()};
+setInterval(()=>{if(!document.hidden&&!$('sLog').classList.contains('hide')&&!$('pSet').classList.contains('hide'))renderLog()},2000);
 document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>setPage(b.dataset.sp));
 async function renderKs(){const r=await vpn.ksGet();S.ks=!!(r.data&&r.data.on);$('ksSw').classList.toggle('act',S.ks);$('ksSw').textContent=S.ks?'Вкл':'Выкл';
  $('ksHint').textContent=r.data&&r.data.active?'Сейчас интернет заблокирован — подключитесь к VPN':''}
@@ -540,7 +566,7 @@ $('ksSw').onclick=async()=>{if(!S.ks&&!await ask('При обрыве VPN инт
 setInterval(()=>{if(!document.hidden&&!$('pSet').classList.contains('hide'))renderKs()},4000);
 
 /* что нового и инструкция первого запуска */
-const NOTES={'1.4.1':{add:['Выбор канала обновлений (Дополнительные настройки): Stable, PTB, Dev','В настройках показаны версия приложения и канал обновлений'],chg:['Правила маршрутизации: настройте всё, нажмите «Сохранить» — туннель перезапустится сам, без вопросов после каждого правила','Пинг серверов обновляется в реальном времени, кнопка «Тест пинга» убрана']},'1.4.0':{add:['Выбор канала обновлений (Дополнительные настройки): Stable, PTB, Dev']},'1.3.1':{add:['Поиск по названию на вкладке «Серверы» и при выборе серверов для правила'],fix:['При выборе серверов в настройках правила список больше не прокручивается в начало','Ложное предупреждение «сервер недоступен» для правил маршрутизации на серверы: канал запускается без блокирующей проверки']},'1.3.0':{add:['Правила маршрутизации для приложений и доменов: напрямую (мимо VPN) или на выбранные серверы (шестерёнка справа от правила). Если сервер не отвечает, соединение блокируется','Доменные зоны: .ru, .su, .рф и другие'],chg:['«Предварительная маршрутизация» объединена с «Маршрутизацией»','Тест пинга снова проверяет все серверы сразу, результат появляется у каждого по мере ответа','Серверы обновляются раз в минуту, обновление приложения предлагается сразу, как только готов новый релиз'],rm:['Кнопка «Обновить» на вкладке «Серверы»','Режим маршрутизации «Только список через VPN»','Настройка интервала обновления серверов и блок версии в настройках']},'1.2.0':{add:['Предварительная маршрутизация (Настройки → Дополнительные): домены и приложения всегда идут через выбранный сервер, независимо от обычной маршрутизации. Если сервер не отвечает, их трафик блокируется','Режим работы «Системный прокси» (по умолчанию остаётся TUN)','На вкладке «Серверы» показано общее число серверов и сколько из них отвечает'],chg:['Тест пинга теперь проверяет серверы по очереди и сразу показывает результат каждого']},'1.1.0':{add:['Пинг отдельного сервера: правая кнопка мыши по серверу → «Проверить пинг»','Окно «Что нового» после обновления','Инструкция при первом запуске (её можно открыть снова в Настройках)'],chg:['Автообновление теперь работает из нового репозитория Mikaela-VPN-Windows','Обновлены логотип и иконка приложения']},'1.0.9':{add:['Пинг отдельного сервера: правая кнопка мыши по серверу → «Проверить пинг»','Окно «Что нового» после обновления','Инструкция при первом запуске (её можно открыть снова в Настройках)'],chg:['Автообновление переехало в новый репозиторий Mikaela-VPN-Windows. Обновление установится само']}};
+const NOTES={'1.5.0':{add:['Журнал в настройках','Первичная настройка маршрутизации при первом запуске: предлагает приложения, которые активно используют сеть']},'1.4.1':{add:['Выбор канала обновлений (Дополнительные настройки): Stable, PTB, Dev','В настройках показаны версия приложения и канал обновлений'],chg:['Правила маршрутизации: настройте всё, нажмите «Сохранить» — туннель перезапустится сам, без вопросов после каждого правила','Пинг серверов обновляется в реальном времени, кнопка «Тест пинга» убрана']},'1.4.0':{add:['Выбор канала обновлений (Дополнительные настройки): Stable, PTB, Dev']},'1.3.1':{add:['Поиск по названию на вкладке «Серверы» и при выборе серверов для правила'],fix:['При выборе серверов в настройках правила список больше не прокручивается в начало','Ложное предупреждение «сервер недоступен» для правил маршрутизации на серверы: канал запускается без блокирующей проверки']},'1.3.0':{add:['Правила маршрутизации для приложений и доменов: напрямую (мимо VPN) или на выбранные серверы (шестерёнка справа от правила). Если сервер не отвечает, соединение блокируется','Доменные зоны: .ru, .su, .рф и другие'],chg:['«Предварительная маршрутизация» объединена с «Маршрутизацией»','Тест пинга снова проверяет все серверы сразу, результат появляется у каждого по мере ответа','Серверы обновляются раз в минуту, обновление приложения предлагается сразу, как только готов новый релиз'],rm:['Кнопка «Обновить» на вкладке «Серверы»','Режим маршрутизации «Только список через VPN»','Настройка интервала обновления серверов и блок версии в настройках']},'1.2.0':{add:['Предварительная маршрутизация (Настройки → Дополнительные): домены и приложения всегда идут через выбранный сервер, независимо от обычной маршрутизации. Если сервер не отвечает, их трафик блокируется','Режим работы «Системный прокси» (по умолчанию остаётся TUN)','На вкладке «Серверы» показано общее число серверов и сколько из них отвечает'],chg:['Тест пинга теперь проверяет серверы по очереди и сразу показывает результат каждого']},'1.1.0':{add:['Пинг отдельного сервера: правая кнопка мыши по серверу → «Проверить пинг»','Окно «Что нового» после обновления','Инструкция при первом запуске (её можно открыть снова в Настройках)'],chg:['Автообновление теперь работает из нового репозитория Mikaela-VPN-Windows','Обновлены логотип и иконка приложения']},'1.0.9':{add:['Пинг отдельного сервера: правая кнопка мыши по серверу → «Проверить пинг»','Окно «Что нового» после обновления','Инструкция при первом запуске (её можно открыть снова в Настройках)'],chg:['Автообновление переехало в новый репозиторий Mikaela-VPN-Windows. Обновление установится само']}};
 const GUIDE=[
  ['Главная','<ul><li>Большая кнопка включает и отключает VPN</li><li>Сумма сверху — ваш баланс, нажмите на неё, чтобы пополнить</li><li>«Продлить» открывает продление подписки, если тарифов несколько, их можно переключить</li></ul>'],
  ['Серверы','<ul><li>Нажмите на сервер, чтобы выбрать его</li><li>«Тест пинга» проверяет все серверы, а правая кнопка мыши по серверу — только его</li><li>«Автовыбор» сам берёт лучший доступный сервер</li></ul>'],
